@@ -5,8 +5,8 @@ namespace AnalyseProgra.Models.Buildings
 {
     public class Mine : ProductionBuilding
     {
-        public Mine(int id, ResourceTypeEnums typeMinerai)
-            : base(id, $"Mine de {typeMinerai}", typeMinerai)
+        public Mine(ResourceTypeEnums typeMinerai)
+            : base($"Mine de {typeMinerai}", typeMinerai)
         {
             // On force le recalcul dès la création pour appliquer les taux corrects
             ApplyUpgradeEffect();

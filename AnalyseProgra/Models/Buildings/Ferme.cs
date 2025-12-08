@@ -6,8 +6,8 @@ namespace AnalyseProgra.Models.Buildings
     public class Ferme : ProductionBuilding
     {
         
-        public Ferme(int id)
-            : base(id, "Ferme", ResourceTypeEnums.Patate)
+        public Ferme()
+            : base("Ferme", ResourceTypeEnums.Patate)
         {
         }
 

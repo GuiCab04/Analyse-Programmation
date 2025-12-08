@@ -7,7 +7,7 @@ namespace AnalyseProgra.Models.Buildings
     {
         public int CapaciteHabitants { get; private set; }
 
-        public HousingBuilding(int id) : base(id, "Module d'Habitation")
+        public HousingBuilding() : base("Module d'Habitation")
         {
             CalculateCapacity();
         }

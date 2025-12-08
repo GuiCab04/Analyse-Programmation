@@ -6,13 +6,11 @@ namespace AnalyseProgra.Models.Buildings
    
     public abstract class Building
     {
-        public int Id { get; private set; }
         public string Nom { get; protected set; }
         public int Level { get; protected set; }
 
-        public Building(int id, string nom)
+        public Building(string nom)
         {
-            Id = id;
             Nom = nom;
             Level = 1;
         }

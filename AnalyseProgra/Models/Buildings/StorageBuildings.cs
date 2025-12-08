@@ -10,8 +10,8 @@ namespace AnalyseProgra.Models.Buildings
         // Si null = Stocke TOUT. Si renseigné = Stocke uniquement cette ressource (Ex: Silo à blé)
         public ResourceTypeEnums? TypeStockage { get; private set; }
 
-        public StorageBuilding(int id, ResourceTypeEnums? typeSpecific = null)
-            : base(id, typeSpecific == null ? "Entrepôt Général" : $"Silo à {typeSpecific}")
+        public StorageBuilding(ResourceTypeEnums? typeSpecific = null)
+            : base(typeSpecific == null ? "Entrepôt Général" : $"Silo à {typeSpecific}")
         {
             TypeStockage = typeSpecific;
             CalculateCapacity();
