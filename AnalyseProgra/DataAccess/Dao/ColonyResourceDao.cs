@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AnalyseProgra.Models;
+﻿using AnalyseProgra.Models;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
 using AnalyseProgra.DataAccess.Interface;
@@ -13,7 +8,7 @@ namespace AnalyseProgra.DataAccess.Dao
 {
     public class ColonyResourceDao : IColonyResourceDao
     {
-        public ColonyResource? Get(int colonyId, int resourceTypeId)
+        public ColonyResource? Get(int colonyId, string resourceTypeId)
         {
             using var conn = Db.GetConnection();
             conn.Open();
@@ -99,7 +94,7 @@ namespace AnalyseProgra.DataAccess.Dao
             cmd.ExecuteNonQuery();
         }
 
-        public void Delete(int colonyId, int resourceTypeId)
+        public void Delete(int colonyId, string resourceTypeId)
         {
             using var conn = Db.GetConnection();
             conn.Open();
@@ -120,7 +115,7 @@ namespace AnalyseProgra.DataAccess.Dao
             return new ColonyResource
             {
                 ColonyId = r.GetInt32(0),
-                ResourceTypeId = r.GetInt32(1),
+                ResourceTypeId = r.GetString(1),
                 Quantity = r.GetDouble(2),
                 ProductionRate = r.GetDouble(3),
                 ConsumptionRate = r.GetDouble(4)
@@ -128,4 +123,3 @@ namespace AnalyseProgra.DataAccess.Dao
         }
     }
 }
-

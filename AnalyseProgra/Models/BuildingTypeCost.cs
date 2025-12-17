@@ -2,8 +2,8 @@
 {
     public class BuildingTypeCost
     {
-        public int BuildingTypeId { get; set; }
-        public int ResourceTypeId { get; set; }
+        public string BuildingTypeId { get; set; } = null!;
+        public string ResourceTypeId { get; set; } = null!;
         public double Amount { get; set; }
     }
 }

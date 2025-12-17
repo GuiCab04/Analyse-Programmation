@@ -8,7 +8,7 @@ namespace AnalyseProgra.DataAccess.Dao
 {
     public class BuildingTypeCostDao : IBuildingTypeCostDao
     {
-        public BuildingTypeCost? Get(int buildingTypeId, int resourceTypeId)
+        public BuildingTypeCost? Get(string buildingTypeId, string resourceTypeId)
         {
             using var conn = Db.GetConnection();
             conn.Open();
@@ -27,7 +27,7 @@ namespace AnalyseProgra.DataAccess.Dao
             return reader.Read() ? Map(reader) : null;
         }
 
-        public IEnumerable<BuildingTypeCost> GetByBuildingType(int buildingTypeId)
+        public IEnumerable<BuildingTypeCost> GetByBuildingType(string buildingTypeId)
         {
             var list = new List<BuildingTypeCost>();
 
@@ -90,7 +90,7 @@ namespace AnalyseProgra.DataAccess.Dao
             cmd.ExecuteNonQuery();
         }
 
-        public void Delete(int buildingTypeId, int resourceTypeId)
+        public void Delete(string buildingTypeId, string resourceTypeId)
         {
             using var conn = Db.GetConnection();
             conn.Open();
@@ -111,8 +111,8 @@ namespace AnalyseProgra.DataAccess.Dao
         {
             return new BuildingTypeCost
             {
-                BuildingTypeId = r.GetInt32(0),
-                ResourceTypeId = r.GetInt32(1),
+                BuildingTypeId = r.GetString(0),
+                ResourceTypeId = r.GetString(1),
                 Amount = r.GetDouble(2)
             };
         }

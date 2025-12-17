@@ -8,17 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="game.db" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="game.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="game.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

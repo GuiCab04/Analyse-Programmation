@@ -5,11 +5,13 @@ namespace AnalyseProgra.DataAccess.Interface
 {
     public interface IBuildingTypeDao
     {
-        BuildingType? GetById(int id);
         BuildingType? GetByName(string name);
         IEnumerable<BuildingType> GetAll();
         BuildingType Create(BuildingType type);
-        void Update(BuildingType type);
-        void Delete(int id);
+
+        // Si tu veux permettre renommage:
+        void Update(string name, BuildingType updated);
+
+        void Delete(string name);
     }
 }

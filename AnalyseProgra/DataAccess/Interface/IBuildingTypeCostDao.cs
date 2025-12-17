@@ -5,11 +5,11 @@ namespace AnalyseProgra.DataAccess.Interface
 {
     public interface IBuildingTypeCostDao
     {
-        BuildingTypeCost? Get(int buildingTypeId, int resourceTypeId);
-        IEnumerable<BuildingTypeCost> GetByBuildingType(int buildingTypeId);
+        BuildingTypeCost? Get(string buildingTypeId, string resourceTypeId);
+        IEnumerable<BuildingTypeCost> GetByBuildingType(string buildingTypeId);
 
         BuildingTypeCost Create(BuildingTypeCost cost);
         void Update(BuildingTypeCost cost);
-        void Delete(int buildingTypeId, int resourceTypeId);
+        void Delete(string buildingTypeId, string resourceTypeId);
     }
 }

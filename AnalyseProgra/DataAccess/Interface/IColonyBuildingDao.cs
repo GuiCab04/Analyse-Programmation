@@ -5,12 +5,12 @@ namespace AnalyseProgra.DataAccess.Interface
 {
     public interface IColonyBuildingDao
     {
-        ColonyBuilding? GetById(int id);
         IEnumerable<ColonyBuilding> GetByColony(int colonyId);
-        ColonyBuilding? GetByColonyAndType(int colonyId, int buildingTypeId);
+        ColonyBuilding? GetByColonyAndType(int colonyId, string buildingTypeId);
 
         ColonyBuilding Create(ColonyBuilding building);
         void Update(ColonyBuilding building);
-        void Delete(int id);
+
+        void Delete(int colonyId, string buildingTypeId);
     }
 }

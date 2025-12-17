@@ -2,9 +2,9 @@
 {
     public class ColonyBuilding
     {
-        public int Id { get; set; }
         public int ColonyId { get; set; }
-        public int BuildingTypeId { get; set; }
+        public string BuildingTypeId { get; set; } = null!;
         public int Level { get; set; }
+
     }
 }

@@ -1,22 +1,18 @@
 using Microsoft.Data.Sqlite;
 using System;
-using System.IO;
 
-namespace AnalyseProgra.DataAccess
+public static class Db
 {
-    public static class Db
+    public static SqliteConnection GetConnection()
     {
-        public static SqliteConnection GetConnection()
-        {
-            var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "game.db");
+        var dbPath = Path.Combine(AppContext.BaseDirectory, "game.db");
 
-            var builder = new SqliteConnectionStringBuilder
-            {
-                DataSource = dbPath,
-                ForeignKeys = true
-            };
-
-            return new SqliteConnection(builder.ToString());
-        }
+        return new SqliteConnection(
+            $"Data Source={dbPath};Foreign Keys=True;"
+        );
     }
 }
+
+// cree le fichier game.db
+// cmd /c ".\sqlite3.exe game.db < ap.sql"
+

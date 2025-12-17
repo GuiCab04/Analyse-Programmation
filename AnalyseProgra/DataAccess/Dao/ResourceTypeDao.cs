@@ -8,26 +8,13 @@ namespace AnalyseProgra.DataAccess.Dao
 {
     public class ResourceTypeDao : IResourceTypeDao
     {
-        public ResourceType? GetById(int id)
-        {
-            using var conn = Db.GetConnection();
-            conn.Open();
-
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT id, name FROM resource_types WHERE id = $id;";
-            cmd.Parameters.AddWithValue("$id", id);
-
-            using var reader = cmd.ExecuteReader();
-            return reader.Read() ? Map(reader) : null;
-        }
-
         public ResourceType? GetByName(string name)
         {
             using var conn = Db.GetConnection();
             conn.Open();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT id, name FROM resource_types WHERE name = $name;";
+            cmd.CommandText = @"SELECT name FROM resource_types WHERE name = $name;";
             cmd.Parameters.AddWithValue("$name", name);
 
             using var reader = cmd.ExecuteReader();
@@ -42,7 +29,7 @@ namespace AnalyseProgra.DataAccess.Dao
             conn.Open();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT id, name FROM resource_types;";
+            cmd.CommandText = "SELECT name FROM resource_types;";
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -60,18 +47,15 @@ namespace AnalyseProgra.DataAccess.Dao
             cmd.CommandText = @"
                 INSERT INTO resource_types (name)
                 VALUES ($name);
-                SELECT last_insert_rowid();
             ";
 
             cmd.Parameters.AddWithValue("$name", type.Name);
 
-            var newId = (long)cmd.ExecuteScalar();
-            type.Id = (int)newId;
-
+            cmd.ExecuteNonQuery();
             return type;
         }
 
-        public void Update(ResourceType type)
+        public void Update(string name, ResourceType updated)
         {
             using var conn = Db.GetConnection();
             conn.Open();
@@ -79,24 +63,24 @@ namespace AnalyseProgra.DataAccess.Dao
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 UPDATE resource_types
-                SET name = $name
-                WHERE id = $id;
+                SET name = $newName
+                WHERE name = $name;
             ";
 
-            cmd.Parameters.AddWithValue("$name", type.Name);
-            cmd.Parameters.AddWithValue("$id", type.Id);
+            cmd.Parameters.AddWithValue("$newName", updated.Name);
+            cmd.Parameters.AddWithValue("$name", name);
 
             cmd.ExecuteNonQuery();
         }
 
-        public void Delete(int id)
+        public void Delete(string name)
         {
             using var conn = Db.GetConnection();
             conn.Open();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM resource_types WHERE id = $id;";
-            cmd.Parameters.AddWithValue("$id", id);
+            cmd.CommandText = "DELETE FROM resource_types WHERE name = $name;";
+            cmd.Parameters.AddWithValue("$name", name);
 
             cmd.ExecuteNonQuery();
         }
@@ -105,8 +89,7 @@ namespace AnalyseProgra.DataAccess.Dao
         {
             return new ResourceType
             {
-                Id = r.GetInt32(0),
-                Name = r.GetString(1)
+                Name = r.GetString(0)
             };
         }
     }

@@ -27,10 +27,8 @@ namespace AnalyseProgra
             IModerationActionDao modDao = new ModerationActionDao();
             IGameSaveDao saveDao = new GameSaveDao();
 
-
             // 1️⃣ ROLE
             var adminRole = roleDao.GetByName("ADMIN") ?? roleDao.Create(new Role { Name = "ADMIN" });
-
 
             // 2️⃣ USER
             var adminUser = userDao.GetByUsername("admin")
@@ -42,7 +40,6 @@ namespace AnalyseProgra
                     IsActive = true
                 });
 
-
             // 3️⃣ COLONY
             var colony = colonyDao.GetByUserId(adminUser.Id)
                 ?? colonyDao.Create(new Colony
@@ -51,28 +48,36 @@ namespace AnalyseProgra
                     Name = "New Hope"
                 });
 
-
-            // 4️⃣ RESOURCE TYPES
+            // 4️⃣ RESOURCE TYPES (PK = Name)
             var food = resourceDao.GetByName("Food")
                 ?? resourceDao.Create(new ResourceType { Name = "Food" });
 
             var wood = resourceDao.GetByName("Wood")
                 ?? resourceDao.Create(new ResourceType { Name = "Wood" });
 
-
-            // 5️⃣ COLONY RESOURCES
-            var foodStock = colonyResourceDao.Get(colony.Id, food.Id)
+            // 5️⃣ COLONY RESOURCES (FK = resource_types.name)
+            var foodStock = colonyResourceDao.Get(colony.Id, food.Name)
                 ?? colonyResourceDao.Create(new ColonyResource
                 {
                     ColonyId = colony.Id,
-                    ResourceTypeId = food.Id,
+                    ResourceTypeId = food.Name,
                     Quantity = 200,
                     ProductionRate = 5,
                     ConsumptionRate = 2
                 });
 
+            // (optionnel) stock wood
+            var woodStock = colonyResourceDao.Get(colony.Id, wood.Name)
+                ?? colonyResourceDao.Create(new ColonyResource
+                {
+                    ColonyId = colony.Id,
+                    ResourceTypeId = wood.Name,
+                    Quantity = 120,
+                    ProductionRate = 2,
+                    ConsumptionRate = 0.5
+                });
 
-            // 6️⃣ BUILDING TYPES
+            // 6️⃣ BUILDING TYPES (PK = Name)
             var farm = buildingTypeDao.GetByName("Farm")
                 ?? buildingTypeDao.Create(new BuildingType
                 {
@@ -80,34 +85,31 @@ namespace AnalyseProgra
                     Description = "Produces food."
                 });
 
-
-            // 7️⃣ BUILDING COSTS
-            var farmCostFood = buildingCostDao.Get(farm.Id, food.Id)
+            // 7️⃣ BUILDING COSTS (FK = building_types.name + resource_types.name)
+            var farmCostFood = buildingCostDao.Get(farm.Name, food.Name)
                 ?? buildingCostDao.Create(new BuildingTypeCost
                 {
-                    BuildingTypeId = farm.Id,
-                    ResourceTypeId = food.Id,
+                    BuildingTypeId = farm.Name,
+                    ResourceTypeId = food.Name,
                     Amount = 50
                 });
 
-            var farmCostWood = buildingCostDao.Get(farm.Id, wood.Id)
+            var farmCostWood = buildingCostDao.Get(farm.Name, wood.Name)
                 ?? buildingCostDao.Create(new BuildingTypeCost
                 {
-                    BuildingTypeId = farm.Id,
-                    ResourceTypeId = wood.Id,
+                    BuildingTypeId = farm.Name,
+                    ResourceTypeId = wood.Name,
                     Amount = 20
                 });
 
-
-            // 8️⃣ COLONY BUILDINGS
-            var colonyFarm = colonyBuildingDao.GetByColonyAndType(colony.Id, farm.Id)
+            // 8️⃣ COLONY BUILDINGS (PK = colony_id + building_type_id)
+            var colonyFarm = colonyBuildingDao.GetByColonyAndType(colony.Id, farm.Name)
                 ?? colonyBuildingDao.Create(new ColonyBuilding
                 {
                     ColonyId = colony.Id,
-                    BuildingTypeId = farm.Id,
+                    BuildingTypeId = farm.Name,
                     Level = 1
                 });
-
 
             // 9️⃣ POPULATION
             var population = populationDao.Get(colony.Id)
@@ -118,7 +120,6 @@ namespace AnalyseProgra
                     Morale = 95
                 });
 
-
             // 🔟 MODERATION ACTION
             modDao.Create(new ModerationAction
             {
@@ -127,7 +128,6 @@ namespace AnalyseProgra
                 ActionType = "INFO",
                 Details = "Admin self-check"
             });
-
 
             // 1️⃣1️⃣ GAME SAVE JSON
             var save = new GameSave
@@ -145,7 +145,6 @@ namespace AnalyseProgra
             };
 
             saveDao.Create(save);
-
 
             // --------------------------
             //   AFFICHAGE DES RESULTATS
@@ -165,23 +164,23 @@ namespace AnalyseProgra
 
             Console.WriteLine("\n=== RESOURCE TYPES ===");
             foreach (var rt in resourceDao.GetAll())
-                Console.WriteLine($"{rt.Id} - {rt.Name}");
+                Console.WriteLine($"{rt.Name}");
 
             Console.WriteLine("\n=== COLONY RESOURCES ===");
             foreach (var cr in colonyResourceDao.GetByColony(colony.Id))
-                Console.WriteLine($"{cr.ColonyId} - Res {cr.ResourceTypeId}: {cr.Quantity}");
+                Console.WriteLine($"{cr.ColonyId} - Res {cr.ResourceTypeId}: {cr.Quantity} (prod={cr.ProductionRate}, cons={cr.ConsumptionRate})");
 
             Console.WriteLine("\n=== BUILDING TYPES ===");
             foreach (var bt in buildingTypeDao.GetAll())
-                Console.WriteLine($"{bt.Id} - {bt.Name}");
+                Console.WriteLine($"{bt.Name} - {bt.Description}");
 
-            Console.WriteLine("\n=== BUILDING COSTS ===");
-            foreach (var bc in buildingCostDao.GetByBuildingType(farm.Id))
+            Console.WriteLine("\n=== BUILDING COSTS (Farm) ===");
+            foreach (var bc in buildingCostDao.GetByBuildingType(farm.Name))
                 Console.WriteLine($"Farm cost res {bc.ResourceTypeId} = {bc.Amount}");
 
             Console.WriteLine("\n=== COLONY BUILDINGS ===");
             foreach (var b in colonyBuildingDao.GetByColony(colony.Id))
-                Console.WriteLine($"{b.Id} - Type {b.BuildingTypeId} (Level {b.Level})");
+                Console.WriteLine($"Colony {b.ColonyId} - Type {b.BuildingTypeId} (Level {b.Level})");
 
             Console.WriteLine("\n=== POPULATION ===");
             var pop = populationDao.Get(colony.Id);
@@ -190,10 +189,6 @@ namespace AnalyseProgra
             Console.WriteLine("\n=== MODERATION ACTIONS ===");
             foreach (var m in modDao.GetAll())
                 Console.WriteLine($"{m.Id} - {m.ActionType} - {m.Details}");
-
-        
-
-
 
             Console.WriteLine("\n\n✔ TEST GLOBAL TERMINE ✔");
             Console.ReadKey();

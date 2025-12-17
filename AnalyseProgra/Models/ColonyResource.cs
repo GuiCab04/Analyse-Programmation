@@ -9,7 +9,7 @@ namespace AnalyseProgra.Models
     public class ColonyResource
     {
         public int ColonyId { get; set; }
-        public int ResourceTypeId { get; set; }
+        public string ResourceTypeId { get; set; } = null!;
 
         public double Quantity { get; set; }
         public double ProductionRate { get; set; }
