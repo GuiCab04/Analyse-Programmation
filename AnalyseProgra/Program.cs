@@ -1,427 +1,353 @@
-﻿using AnalyseProgra.DataAccess.Dao;
-using AnalyseProgra.DataAccess.Interface;
-using AnalyseProgra.Models;
-using System;
-using System.Text.Json;
-
-namespace AnalyseProgra
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            // --- DAO Instanciation ---
-            IRoleDao roleDao = new RoleDao();
-            IUserDao userDao = new UserDao();
-            IColonyDao colonyDao = new ColonyDao();
-
-            IResourceTypeDao resourceDao = new ResourceTypeDao();
-            IColonyResourceDao colonyResourceDao = new ColonyResourceDao();
-
-            IBuildingTypeDao buildingTypeDao = new BuildingTypeDao();
-            IBuildingTypeCostDao buildingCostDao = new BuildingTypeCostDao();
-            IColonyBuildingDao colonyBuildingDao = new ColonyBuildingDao();
-
-            IColonyPopulationDao populationDao = new ColonyPopulationDao();
-
-            IModerationActionDao modDao = new ModerationActionDao();
-            IGameSaveDao saveDao = new GameSaveDao();
-
-            // 1️⃣ ROLE
-            var adminRole = roleDao.GetByName("ADMIN") ?? roleDao.Create(new Role { Name = "ADMIN" });
-
-            // 2️⃣ USER
-            var adminUser = userDao.GetByUsername("admin")
-                ?? userDao.Create(new User
-                {
-                    Username = "admin",
-                    PasswordHash = "pass123",
-                    RoleId = adminRole.Id,
-                    IsActive = true
-                });
-
-            // 3️⃣ COLONY
-            var colony = colonyDao.GetByUserId(adminUser.Id)
-                ?? colonyDao.Create(new Colony
-                {
-                    UserId = adminUser.Id,
-                    Name = "New Hope"
-                });
-
-            // 4️⃣ RESOURCE TYPES (PK = Name)
-            var food = resourceDao.GetByName("Food")
-                ?? resourceDao.Create(new ResourceType { Name = "Food" });
-
-            var wood = resourceDao.GetByName("Wood")
-                ?? resourceDao.Create(new ResourceType { Name = "Wood" });
-
-            // 5️⃣ COLONY RESOURCES (FK = resource_types.name)
-            var foodStock = colonyResourceDao.Get(colony.Id, food.Name)
-                ?? colonyResourceDao.Create(new ColonyResource
-                {
-                    ColonyId = colony.Id,
-                    ResourceTypeId = food.Name,
-                    Quantity = 200,
-                    ProductionRate = 5,
-                    ConsumptionRate = 2
-                });
-
-            // (optionnel) stock wood
-            var woodStock = colonyResourceDao.Get(colony.Id, wood.Name)
-                ?? colonyResourceDao.Create(new ColonyResource
-                {
-                    ColonyId = colony.Id,
-                    ResourceTypeId = wood.Name,
-                    Quantity = 120,
-                    ProductionRate = 2,
-                    ConsumptionRate = 0.5
-                });
-
-            // 6️⃣ BUILDING TYPES (PK = Name)
-            var farm = buildingTypeDao.GetByName("Farm")
-                ?? buildingTypeDao.Create(new BuildingType
-                {
-                    Name = "Farm",
-                    Description = "Produces food."
-                });
-
-            // 7️⃣ BUILDING COSTS (FK = building_types.name + resource_types.name)
-            var farmCostFood = buildingCostDao.Get(farm.Name, food.Name)
-                ?? buildingCostDao.Create(new BuildingTypeCost
-                {
-                    BuildingTypeId = farm.Name,
-                    ResourceTypeId = food.Name,
-                    Amount = 50
-                });
-
-            var farmCostWood = buildingCostDao.Get(farm.Name, wood.Name)
-                ?? buildingCostDao.Create(new BuildingTypeCost
-                {
-                    BuildingTypeId = farm.Name,
-                    ResourceTypeId = wood.Name,
-                    Amount = 20
-                });
-
-            // 8️⃣ COLONY BUILDINGS (PK = colony_id + building_type_id)
-            var colonyFarm = colonyBuildingDao.GetByColonyAndType(colony.Id, farm.Name)
-                ?? colonyBuildingDao.Create(new ColonyBuilding
-                {
-                    ColonyId = colony.Id,
-                    BuildingTypeId = farm.Name,
-                    Level = 1
-                });
-
-            // 9️⃣ POPULATION
-            var population = populationDao.Get(colony.Id)
-                ?? populationDao.Create(new ColonyPopulation
-                {
-                    ColonyId = colony.Id,
-                    PopulationCount = 10,
-                    Morale = 95
-                });
-
-            // 🔟 MODERATION ACTION
-            modDao.Create(new ModerationAction
-            {
-                PerformedByUserId = adminUser.Id,
-                TargetUserId = adminUser.Id,
-                ActionType = "INFO",
-                Details = "Admin self-check"
-            });
-
-            // 1️⃣1️⃣ GAME SAVE JSON
-            var save = new GameSave
-            {
-                UserId = adminUser.Id,
-                ColonyId = colony.Id,
-                SaveName = "First Save",
-                DataJson = JsonSerializer.Serialize(new
-                {
-                    Colony = colony,
-                    Resources = colonyResourceDao.GetByColony(colony.Id),
-                    Buildings = colonyBuildingDao.GetByColony(colony.Id),
-                    Population = population
-                })
-            };
-
-            saveDao.Create(save);
-
-            // --------------------------
-            //   AFFICHAGE DES RESULTATS
-            // --------------------------
-
-            Console.WriteLine("\n=== ROLES ===");
-            foreach (var r in roleDao.GetAll())
-                Console.WriteLine($"{r.Id} - {r.Name}");
-
-            Console.WriteLine("\n=== USERS ===");
-            foreach (var u in userDao.GetAll())
-                Console.WriteLine($"{u.Id} - {u.Username} (Role={u.RoleId})");
-
-            Console.WriteLine("\n=== COLONIES ===");
-            foreach (var c in colonyDao.GetAll())
-                Console.WriteLine($"{c.Id} - {c.Name} (UserId={c.UserId})");
-
-            Console.WriteLine("\n=== RESOURCE TYPES ===");
-            foreach (var rt in resourceDao.GetAll())
-                Console.WriteLine($"{rt.Name}");
-
-            Console.WriteLine("\n=== COLONY RESOURCES ===");
-            foreach (var cr in colonyResourceDao.GetByColony(colony.Id))
-                Console.WriteLine($"{cr.ColonyId} - Res {cr.ResourceTypeId}: {cr.Quantity} (prod={cr.ProductionRate}, cons={cr.ConsumptionRate})");
-
-            Console.WriteLine("\n=== BUILDING TYPES ===");
-            foreach (var bt in buildingTypeDao.GetAll())
-                Console.WriteLine($"{bt.Name} - {bt.Description}");
-
-            Console.WriteLine("\n=== BUILDING COSTS (Farm) ===");
-            foreach (var bc in buildingCostDao.GetByBuildingType(farm.Name))
-                Console.WriteLine($"Farm cost res {bc.ResourceTypeId} = {bc.Amount}");
-
-            Console.WriteLine("\n=== COLONY BUILDINGS ===");
-            foreach (var b in colonyBuildingDao.GetByColony(colony.Id))
-                Console.WriteLine($"Colony {b.ColonyId} - Type {b.BuildingTypeId} (Level {b.Level})");
-
-            Console.WriteLine("\n=== POPULATION ===");
-            var pop = populationDao.Get(colony.Id);
-            Console.WriteLine($"{pop.ColonyId} - {pop.PopulationCount} habitants, morale {pop.Morale}");
-
-            Console.WriteLine("\n=== MODERATION ACTIONS ===");
-            foreach (var m in modDao.GetAll())
-                Console.WriteLine($"{m.Id} - {m.ActionType} - {m.Details}");
-
-            Console.WriteLine("\n\n✔ TEST GLOBAL TERMINE ✔");
-            Console.ReadKey();
-        }
-    }
-}
-
-
-/* using AnalyseProgra.Models.Enums;
+﻿using AnalyseProgra.Models.Enums;
 using AnalyseProgra.Models.Buildings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 
 class Program
 {
+    // --- GESTIONNAIRES ---
     static ResourceManager _ressources = new ResourceManager();
     static PopulationManager _population = new PopulationManager();
-
+    static object _verrouBatiments = new object();
     static List<Building> _batiments = new List<Building>();
-
     static bool _jeuEnCours = true;
+
+    // --- ETAT DU MENU ---
+    // On définit les options ici pour pouvoir les afficher dans la boucle Live
+    static string[] _menuOptions = {
+        "Voir mes Bâtiments",
+        "Construire un Bâtiment",
+        "Améliorer un Bâtiment",
+        "Gérer Population (Debug)",
+        "Quitter"
+    };
+    static int _menuSelection = 0; // L'index de l'option sélectionnée actuellement
 
     static async Task Main(string[] args)
     {
-        
-        _ressources.Ajouter(ResourceTypeEnums.Fer, 200);
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-        _batiments.Add(new Mine(1, ResourceTypeEnums.Fer));
-        _batiments.Add(new Ferme(2));
-        _batiments.Add(new HousingBuilding(3));
-
+        // 1. INITIALISATION
+        _ressources.Ajouter(ResourceTypeEnums.Fer, 50);
+        lock (_verrouBatiments)
+        {
+            _batiments.Add(new Mine(1, ResourceTypeEnums.Fer));
+            _batiments.Add(new Ferme(2));
+            _batiments.Add(new HousingBuilding(3));
+        }
         _population.UpdateMaxPopulation(_batiments);
 
+        // 2. MOTEUR
         var tacheMoteur = Task.Run(() => BoucleDeJeu());
 
+        // 3. BOUCLE PRINCIPALE
         while (_jeuEnCours)
         {
-            Console.Clear();
-            Console.WriteLine("=== COLONY MANAGER 2026 ===");
-            Console.WriteLine("Moteur actif : Le temps passe...");
-            Console.WriteLine("-----------------------------");
+            // On lance l'interface Live. Elle rendra la main quand l'utilisateur appuiera sur ENTRÉE.
+            await AfficherInterfaceUnifiee();
 
-            Console.WriteLine("1. [RAPPORT] Voir État Global");
-            Console.WriteLine("2. [INFOS]   Voir mes Bâtiments");
-            Console.WriteLine("\n--- GESTION ---");
-            Console.WriteLine("3. [CONST]   Construire un Bâtiment");
-            Console.WriteLine("4. [UPGRADE] Améliorer un Bâtiment");
-            Console.WriteLine("5. [ACTION]  Consommer Ressource");
-
-            Console.WriteLine("\n--- POPULATION ---");
-            Console.WriteLine("6. [POP]     Ajouter Colon");
-            Console.WriteLine("7. [POP]     Tuer Colon");
-
-            Console.WriteLine("\nQ. Quitter");
-            Console.Write("\nVotre choix : ");
-
-            var input = Console.ReadKey(true).Key;
-            Console.WriteLine();
-
-            switch (input)
+            // Si on est sorti de la fonction, c'est qu'une action a été validée.
+            if (_jeuEnCours)
             {
-                case ConsoleKey.D1:
-                case ConsoleKey.NumPad1:
-                    AfficherEtatGlobal();
-                    PauseUtilisateur();
-                    break;
-
-                case ConsoleKey.D2:
-                case ConsoleKey.NumPad2:
-                    AfficherBatiments();
-                    PauseUtilisateur();
-                    break;
-
-                case ConsoleKey.D3:
-                case ConsoleKey.NumPad3:
-                    ActionConstruireBatiment();
-                    PauseUtilisateur();
-                    break;
-
-                case ConsoleKey.D4:
-                case ConsoleKey.NumPad4:
-                    ActionAmeliorerBatiment();
-                    PauseUtilisateur();
-                    break;
-
-                case ConsoleKey.D5:
-                case ConsoleKey.NumPad5:
-                    ActionRetirerRessource();
-                    PauseUtilisateur();
-                    break;
-
-                case ConsoleKey.D6:
-                case ConsoleKey.NumPad6:
-                    ActionAjouterPopulation();
-                    PauseUtilisateur();
-                    break;
-
-                case ConsoleKey.D7:
-                case ConsoleKey.NumPad7:
-                    ActionRetirerPopulation();
-                    PauseUtilisateur();
-                    break;
-
-                case ConsoleKey.Q:
-                    _jeuEnCours = false;
-                    Console.WriteLine("Arrêt du moteur...");
-                    break;
+                ExecuterActionMenu();
             }
-
-            await Task.Delay(50);
         }
 
         await tacheMoteur;
-        Console.WriteLine("Fermeture complète.");
     }
 
-   
+    // --- INTERFACE LIVE UNIFIÉE ---
 
-    static void ActionAmeliorerBatiment()
+    static async Task AfficherInterfaceUnifiee()
     {
-        Console.WriteLine("\n=== AMÉLIORATION DES BÂTIMENTS ===");
-        if (_batiments.Count == 0)
-        {
-            Console.WriteLine("Vous n'avez aucun bâtiment à améliorer.");
-            return;
-        }
+        // Layout Global : Entête en haut, Corps en dessous
+        var layout = new Layout("Root").SplitRows(new Layout("Header").Size(6), new Layout("Body"));
 
-        foreach (var b in _batiments)
-        {
-            Console.WriteLine($"ID {b.Id} - {b.Nom} (Niv {b.Level})");
-        }
+        // Le Corps est divisé en deux colonnes : Dashboard (Gauche) et Menu (Droite)
+        layout["Body"].SplitColumns(
+            new Layout("Dashboard"),
+            new Layout("Menu").Size(30) // Menu largeur fixe
+        );
 
-        Console.Write("\nEntrez l'ID du bâtiment à améliorer : ");
-        string input = Console.ReadLine();
-
-        if (int.TryParse(input, out int idRecherche))
-        {
-            
-            Building batiment = _batiments.FirstOrDefault(b => b.Id == idRecherche);
-
-            if (batiment != null)
+        await AnsiConsole.Live(layout)
+            .AutoClear(true) // Nettoie l'écran quand on part dans un sous-menu
+            .Overflow(VerticalOverflow.Ellipsis)
+            .StartAsync(async ctx =>
             {
-                
-                var couts = batiment.GetUpgradeCost();
-                Console.WriteLine($"\nCoût pour passer au niveau {batiment.Level + 1} :");
-                foreach (var c in couts)
+                bool actionValidee = false;
+
+                while (!actionValidee && _jeuEnCours)
                 {
-                    Console.WriteLine($"- {c.Value} {c.Key}");
-                }
+                    // 1. MISE A JOUR VISUELLE
+                    layout["Header"].Update(CreerEntete());
+                    layout["Dashboard"].Update(CreerTableauDeBord());
+                    layout["Menu"].Update(CreerMenuVisuel()); // On dessine le menu nous-même
 
-                Console.Write("Confirmer ? (O/N) : ");
-                if (Console.ReadKey().Key == ConsoleKey.O)
-                {
-                    Console.WriteLine();                    
-                    bool succes = batiment.TryUpgrade(_ressources);
+                    ctx.Refresh();
 
-                    if (succes)
+                    // 2. GESTION CLAVIER (Navigation Menu)
+                    if (Console.KeyAvailable)
                     {
-                        Console.WriteLine($"[SUCCÈS] {batiment.Nom} est maintenant niveau {batiment.Level} !");
+                        var key = Console.ReadKey(true).Key;
 
-                        _population.UpdateMaxPopulation(_batiments);
-                        _ressources.UpdateMaxStorage(_batiments);
+                        if (key == ConsoleKey.UpArrow)
+                        {
+                            _menuSelection--;
+                            if (_menuSelection < 0) _menuSelection = _menuOptions.Length - 1; // Boucle vers la fin
+                        }
+                        else if (key == ConsoleKey.DownArrow)
+                        {
+                            _menuSelection++;
+                            if (_menuSelection >= _menuOptions.Length) _menuSelection = 0; // Boucle vers le début
+                        }
+                        else if (key == ConsoleKey.Enter)
+                        {
+                            actionValidee = true; // On sort de la boucle Live pour exécuter l'action
+                        }
                     }
-                    else
-                    {
-                        Console.WriteLine("[ERREUR] Pas assez de ressources !");
-                    }
+
+                    await Task.Delay(50); // Fluidité
                 }
-            }
-            else
-            {
-                Console.WriteLine("ID introuvable.");
-            }
-        }
+            });
     }
 
-    static void AfficherEtatGlobal()
+    // --- WIDGETS ---
+
+    static IRenderable CreerEntete()
     {
-        Console.WriteLine("\n=== RAPPORT ===");
-        Console.WriteLine($"[POPULATION] {_population.GetStatusString()}");
-        Console.WriteLine("[RESSOURCES]");
+        return new Panel(
+            new FigletText("PLANET COLONY").Color(Color.Cyan1).LeftJustified())
+            .Border(BoxBorder.None);
+    }
+
+    static IRenderable CreerTableauDeBord()
+    {
+        var grid = new Grid().Expand();
+        grid.AddColumn();
+
+        // --- POPULATION ---
+        var popActuelle = _population.GetStock();
+        var panelPop = new Panel(
+            Align.Center(new Markup($"[bold yellow]{popActuelle}[/] Habitants  -  [dim]Moral: Stable[/]")))
+            .Header("Population")
+            .BorderColor(Color.Green);
+
+        // --- RESSOURCES ---
+        var tableRes = new Table().Border(TableBorder.Rounded).Expand();
+
+        tableRes.AddColumn(new TableColumn("Ressource").Width(15).NoWrap());
+        tableRes.AddColumn(new TableColumn("Stock").Width(20).RightAligned());
+        tableRes.AddColumn("Jauge");
+
+        // CALCUL DE LA LARGEUR DISPONIBLE POUR LA JAUGE
+        // Largeur Ecran 
+        // - (Largeur Menu 30) 
+        // - (Col Ressource 15) 
+        // - (Col Stock 20) 
+        // - (Marge de sécurité pour Bordures Tableau + Panel + Padding : ~17)
+        int largeurFenetre = AnsiConsole.Profile.Width;
+        int largeurFixeColonnes = 30 + 15 + 20 + 17; // Total 82
+
+        int totalWidth = Math.Max(0, largeurFenetre - largeurFixeColonnes);
+
         foreach (ResourceTypeEnums type in Enum.GetValues(typeof(ResourceTypeEnums)))
         {
             int stock = _ressources.GetStock(type);
             int max = _ressources.GetMax(type);
-            Console.WriteLine($"- {type,-12} : {stock} / {max}");
+
+            double ratio = max > 0 ? (double)stock / max : 0;
+
+            int filled = (int)(ratio * totalWidth);
+            filled = Math.Clamp(filled, 0, totalWidth);
+            int empty = totalWidth - filled;
+
+            string color = ratio > 0.9 ? "red" : "blue";
+            string barVisual = $"[{color}]{new string('█', filled)}[/]{new string(' ', empty)}";
+
+            tableRes.AddRow(
+                $"[bold]{type}[/]",
+                $"{stock}/{max}",
+                barVisual
+            );
+        }
+
+        grid.AddRow(panelPop);
+        grid.AddRow(tableRes);
+        return new Panel(grid).Header("Tableau de Bord").BorderColor(Color.Blue);
+    }
+
+    static IRenderable CreerMenuVisuel()
+    {
+        var list = new List<Markup>();
+
+        for (int i = 0; i < _menuOptions.Length; i++)
+        {
+            if (i == _menuSelection)
+            {
+                // Option sélectionnée : En couleur et avec un curseur >
+                list.Add(new Markup($"[bold yellow]> {_menuOptions[i]}[/]"));
+            }
+            else
+            {
+                // Option normale : Grisée
+                list.Add(new Markup($"[grey]  {_menuOptions[i]}[/]"));
+            }
+        }
+
+        // On met tout dans une Grid ou des Rows
+        var rows = new Rows(list);
+
+        return new Panel(rows)
+            .Header("Actions")
+            .BorderColor(Color.Yellow)
+            .Expand();
+    }
+
+    // --- LOGIQUE ACTIONS ---
+
+    static void ExecuterActionMenu()
+    {
+        string choix = _menuOptions[_menuSelection];
+        AnsiConsole.Clear();
+
+        switch (choix)
+        {
+            case "Voir mes Bâtiments": AfficherBatiments(); break;
+            case "Construire un Bâtiment": MenuConstruction(); break;
+            case "Améliorer un Bâtiment": MenuAmelioration(); break;
+            case "Gérer Population (Debug)": MenuPopulation(); break;
+            case "Quitter": _jeuEnCours = false; break;
         }
     }
 
     static void AfficherBatiments()
     {
-        Console.WriteLine("\n=== VOS BÂTIMENTS ===");
-        foreach (var b in _batiments)
-        {
-            string details = "";
-            if (b is ProductionBuilding prod)
-                details = $"-> Prod: {prod.TauxProduction} {prod.ResourceProduite}/sec";
-            else if (b is HousingBuilding house)
-                details = $"-> Lits: {house.CapaciteHabitants}";
-            else if (b is StorageBuilding storage)
-                details = $"-> Stockage: +{storage.CapaciteAjoutee}";
+        var table = new Table().Title("Vos Installations");
+        table.AddColumn("Index");
+        table.AddColumn("Nom");
+        table.AddColumn("Niveau");
+        table.AddColumn("Détails");
 
-            Console.WriteLine($"[ID {b.Id}] {b.Nom} (Niv {b.Level}) {details}");
+        lock (_verrouBatiments)
+        {
+            int index = 0;
+            foreach (var b in _batiments)
+            {
+                string details = "";
+                string color = "white";
+
+                if (b is ProductionBuilding prod) { details = $"Prod: [green]+{prod.TauxProduction}[/] {prod.ResourceProduite}/s"; color = "yellow"; }
+                else if (b is HousingBuilding house) { details = $"Lits: [blue]{house.CapaciteHabitants}[/]"; color = "cyan"; }
+                else if (b is StorageBuilding storage)
+                {
+                    string type = storage.TypeStockage.HasValue ? storage.TypeStockage.ToString() : "Global";
+                    details = $"Stock: [purple]+{storage.CapaciteAjoutee}[/] ({type})"; color = "grey";
+                }
+
+                table.AddRow(index.ToString(), $"[{color}]{b.Nom}[/]", b.Level.ToString(), details);
+                index++;
+            }
         }
+        AnsiConsole.Write(table);
+        Pause();
     }
 
-    static void ActionConstruireBatiment()
+    static void MenuConstruction()
     {
-       
-        Console.WriteLine("\n=== MENU CONSTRUCTION ===");
-        Console.WriteLine("1. Mine de Fer (50 Fer)");
-        Console.WriteLine("2. Mine d'Or (150 Fer)");
-        Console.WriteLine("3. Ferme (30 Fer)");
-        Console.WriteLine("4. Maison (50 Fer)");
-        Console.WriteLine("5. Silo Patates (80 Fer)");
-        Console.Write("> ");
+        // Menu classique pour la construction (car trop complexe à simuler en Live simple)
+        var choix = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Que voulez-vous [green]construire[/] ?")
+                .PageSize(10)
+                .AddChoices(new[] {
+                    "Mine de Fer (50 Fer)", "Mine d'Or (150 Fer)", "Ferme (30 Fer)",
+                    "Maison (50 Fer)", "Silo Patates (80 Fer)", "Hangar Fer (100 Fer)",
+                    "[red]Retour[/]"
+                }));
 
-        var choix = Console.ReadKey(true).Key;
-        int newId = (_batiments.Count > 0 ? _batiments.Max(b => b.Id) : 0) + 1;
+        if (choix == "[red]Retour[/]") return;
 
-        if (choix == ConsoleKey.D1) TryBuild(50, new Mine(newId, ResourceTypeEnums.Fer));
-        else if (choix == ConsoleKey.D2) TryBuild(150, new Mine(newId, ResourceTypeEnums.Or));
-        else if (choix == ConsoleKey.D3) TryBuild(30, new Ferme(newId));
-        else if (choix == ConsoleKey.D4)
+        int newId;
+        lock (_verrouBatiments) { newId = (_batiments.Count > 0 ? _batiments.Max(b => b.Id) : 0) + 1; }
+        bool succes = false;
+
+        if (choix.Contains("Mine de Fer")) succes = TryBuild(50, new Mine(newId, ResourceTypeEnums.Fer));
+        else if (choix.Contains("Mine d'Or")) succes = TryBuild(150, new Mine(newId, ResourceTypeEnums.Or));
+        else if (choix.Contains("Ferme")) succes = TryBuild(30, new Ferme(newId));
+
+        else if (choix.Contains("Maison"))
         {
-            if (TryBuild(50, new HousingBuilding(newId))) _population.UpdateMaxPopulation(_batiments);
+            succes = TryBuild(50, new HousingBuilding(newId));
+            if (succes) _population.UpdateMaxPopulation(_batiments);
         }
-        else if (choix == ConsoleKey.D5)
+        else if (choix.Contains("Silo Patates"))
         {
-            if (TryBuild(80, new StorageBuilding(newId, ResourceTypeEnums.Patate))) _ressources.UpdateMaxStorage(_batiments);
+            succes = TryBuild(80, new StorageBuilding(newId, ResourceTypeEnums.Patate));
+            if (succes) _ressources.UpdateMaxStorage(_batiments);
         }
+        else if (choix.Contains("Hangar Fer"))
+        {
+            succes = TryBuild(100, new StorageBuilding(newId, ResourceTypeEnums.Fer));
+            if (succes) _ressources.UpdateMaxStorage(_batiments);
+        }
+
+        if (succes)
+        {
+            AnsiConsole.Status().Start("Construction...", ctx => { ctx.Spinner(Spinner.Known.Clock); System.Threading.Thread.Sleep(1500); });
+            AnsiConsole.MarkupLine("[green bold]Construction terminée ![/]");
+        }
+        else AnsiConsole.MarkupLine("[red bold]Pas assez de ressources ![/]");
+
+        Pause();
+    }
+
+    static void MenuAmelioration()
+    {
+        List<string> choices;
+        lock (_verrouBatiments)
+        {
+            if (_batiments.Count == 0) { AnsiConsole.MarkupLine("[red]Aucun bâtiment.[/]"); Pause(); return; }
+            choices = _batiments.Select((b, i) => $"{i} - {b.Nom} (Niv {b.Level})").ToList();
+        }
+        choices.Add("[red]Retour[/]");
+
+        var selection = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Améliorer ?").AddChoices(choices));
+        if (selection == "[red]Retour[/]") return;
+
+        int index = int.Parse(selection.Split('-')[0].Trim());
+        Building batiment;
+        lock (_verrouBatiments) { batiment = _batiments[index]; }
+
+        var couts = batiment.GetUpgradeCost();
+        AnsiConsole.MarkupLine($"Coût pour Niveau {batiment.Level + 1}:");
+        foreach (var c in couts) AnsiConsole.MarkupLine($"- {c.Value} {c.Key}");
+
+        if (AnsiConsole.Confirm("Confirmer ?"))
+        {
+            if (batiment.TryUpgrade(_ressources))
+            {
+                _population.UpdateMaxPopulation(_batiments);
+                _ressources.UpdateMaxStorage(_batiments);
+                AnsiConsole.MarkupLine("[green]Succès ![/]");
+            }
+            else AnsiConsole.MarkupLine("[red]Pas assez de ressources.[/]");
+        }
+        Pause();
+    }
+
+    static void MenuPopulation()
+    {
+        var action = AnsiConsole.Prompt(new SelectionPrompt<string>().AddChoices(new[] { "Ajouter Colon", "Tuer Colon", "Retour" }));
+        if (action == "Ajouter Colon")
+        {
+            int avant = _population.GetStock(); _population.Ajouter(1);
+            if (_population.GetStock() > avant) AnsiConsole.MarkupLine("[green]+1[/]"); else AnsiConsole.MarkupLine("[yellow]Manque de lits[/]");
+        }
+        else if (action == "Tuer Colon") { _population.Retirer(1); AnsiConsole.MarkupLine("[red]-1[/]"); }
     }
 
     static bool TryBuild(int cost, Building b)
@@ -429,34 +355,26 @@ class Program
         if (_ressources.HasEnough(ResourceTypeEnums.Fer, cost))
         {
             _ressources.Retirer(ResourceTypeEnums.Fer, cost);
-            _batiments.Add(b);
-            Console.WriteLine($"\n[SUCCÈS] Construit : {b.Nom}");
+            lock (_verrouBatiments) { _batiments.Add(b); }
             return true;
         }
-        Console.WriteLine("\n[ERREUR] Pas assez de Fer.");
         return false;
     }
 
-    static void ActionRetirerRessource() { /* ...  }
-    static void ActionAjouterPopulation() { _population.Ajouter(1); Console.WriteLine("+1"); }
-    static void ActionRetirerPopulation() { _population.Retirer(1); Console.WriteLine("-1"); }
-    static void PauseUtilisateur() { Console.WriteLine("\n[Entrée...]"); Console.ReadLine(); }
+    static void Pause() { AnsiConsole.MarkupLine("[grey]Appuyez sur une touche...[/]"); Console.ReadKey(true); }
 
+    // --- MOTEUR DE JEU ---
     static async Task BoucleDeJeu()
     {
         while (_jeuEnCours)
         {
-            _population.UpdateMaxPopulation(_batiments);
-            _ressources.UpdateMaxStorage(_batiments);
+            List<Building> copieBatiments;
+            lock (_verrouBatiments) { copieBatiments = _batiments.ToList(); }
 
-            try
-            {
-                foreach (var b in _batiments.ToList())
-                {
-                    if (b is ProductionBuilding p) p.Produire(_ressources);
-                }
-            }
-            catch { }
+            _population.UpdateMaxPopulation(copieBatiments);
+            _ressources.UpdateMaxStorage(copieBatiments);
+
+            foreach (var b in copieBatiments) { if (b is ProductionBuilding p) p.Produire(_ressources); }
 
             int nb = _population.GetStock();
             if (nb > 0)
@@ -468,6 +386,3 @@ class Program
         }
     }
 }
-
-*/
-
