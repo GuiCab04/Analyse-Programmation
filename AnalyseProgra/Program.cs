@@ -35,9 +35,9 @@ class Program
         _ressources.Ajouter(ResourceTypeEnums.Fer, 50);
         lock (_verrouBatiments)
         {
-            _batiments.Add(new Mine(1, ResourceTypeEnums.Fer));
-            _batiments.Add(new Ferme(2));
-            _batiments.Add(new HousingBuilding(3));
+            _batiments.Add(new Mine(ResourceTypeEnums.Fer));
+            _batiments.Add(new Ferme());
+            _batiments.Add(new HousingBuilding());
         }
         _population.UpdateMaxPopulation(_batiments);
 
@@ -49,7 +49,7 @@ class Program
         {
             // On lance l'interface Live. Elle rendra la main quand l'utilisateur appuiera sur ENTRÉE.
             await AfficherInterfaceUnifiee();
-            Console.WriteLine("Moteur actif : Le temps passe...");
+
             // Si on est sorti de la fonction, c'est qu'une action a été validée.
             if (_jeuEnCours)
             {
@@ -66,20 +66,20 @@ class Program
     {
         // Layout Global : Entête en haut, Corps en dessous
         var layout = new Layout("Root").SplitRows(new Layout("Header").Size(6), new Layout("Body"));
-            var input = Console.ReadKey(true).Key;
+
         // Le Corps est divisé en deux colonnes : Dashboard (Gauche) et Menu (Droite)
         layout["Body"].SplitColumns(
             new Layout("Dashboard"),
             new Layout("Menu").Size(30) // Menu largeur fixe
         );
-                case ConsoleKey.NumPad1:
+
         await AnsiConsole.Live(layout)
             .AutoClear(true) // Nettoie l'écran quand on part dans un sous-menu
             .Overflow(VerticalOverflow.Ellipsis)
             .StartAsync(async ctx =>
             {
                 bool actionValidee = false;
-                case ConsoleKey.NumPad2:
+
                 while (!actionValidee && _jeuEnCours)
                 {
                     // 1. MISE A JOUR VISUELLE
@@ -123,7 +123,7 @@ class Program
             new FigletText("PLANET COLONY").Color(Color.Cyan1).LeftJustified())
             .Border(BoxBorder.None);
     }
-        await tacheMoteur;
+
     static IRenderable CreerTableauDeBord()
     {
         var grid = new Grid().Expand();
@@ -135,7 +135,7 @@ class Program
             Align.Center(new Markup($"[bold yellow]{popActuelle}[/] Habitants  -  [dim]Moral: Stable[/]")))
             .Header("Population")
             .BorderColor(Color.Green);
-        Console.WriteLine("\n=== AMÉLIORATION DES BÂTIMENTS ===");
+
         // --- RESSOURCES ---
         var tableRes = new Table().Border(TableBorder.Rounded).Expand();
 
@@ -271,27 +271,26 @@ class Program
 
         if (choix == "[red]Retour[/]") return;
 
-        int newId;
-        lock (_verrouBatiments) { newId = (_batiments.Count > 0 ? _batiments.Max(b => b.Id) : 0) + 1; }
+        lock (_verrouBatiments) {}
         bool succes = false;
 
-        if (choix.Contains("Mine de Fer")) succes = TryBuild(50, new Mine(newId, ResourceTypeEnums.Fer));
-        else if (choix.Contains("Mine d'Or")) succes = TryBuild(150, new Mine(newId, ResourceTypeEnums.Or));
-        else if (choix.Contains("Ferme")) succes = TryBuild(30, new Ferme(newId));
+        if (choix.Contains("Mine de Fer")) succes = TryBuild(50, new Mine(ResourceTypeEnums.Fer));
+        else if (choix.Contains("Mine d'Or")) succes = TryBuild(150, new Mine(ResourceTypeEnums.Or));
+        else if (choix.Contains("Ferme")) succes = TryBuild(30, new Ferme());
 
         else if (choix.Contains("Maison"))
         {
-            succes = TryBuild(50, new HousingBuilding(newId));
+            succes = TryBuild(50, new HousingBuilding());
             if (succes) _population.UpdateMaxPopulation(_batiments);
         }
         else if (choix.Contains("Silo Patates"))
         {
-            succes = TryBuild(80, new StorageBuilding(newId, ResourceTypeEnums.Patate));
+            succes = TryBuild(80, new StorageBuilding(ResourceTypeEnums.Patate));
             if (succes) _ressources.UpdateMaxStorage(_batiments);
         }
         else if (choix.Contains("Hangar Fer"))
         {
-            succes = TryBuild(100, new StorageBuilding(newId, ResourceTypeEnums.Fer));
+            succes = TryBuild(100, new StorageBuilding(ResourceTypeEnums.Fer));
             if (succes) _ressources.UpdateMaxStorage(_batiments);
         }
 
@@ -375,29 +374,14 @@ class Program
             _ressources.UpdateMaxStorage(copieBatiments);
 
             foreach (var b in copieBatiments) { if (b is ProductionBuilding p) p.Produire(_ressources); }
-    {
-        while (_jeuEnCours)
-        {
-            _population.UpdateMaxPopulation(_batiments);
-            _ressources.UpdateMaxStorage(_batiments);
 
-            try
+            int nb = _population.GetStock();
+            if (nb > 0)
             {
-                foreach (var b in _batiments.ToList())
-                {
-                    if (b is ProductionBuilding p) p.Produire(_ressources);
-                }
+                if (_ressources.HasEnough(ResourceTypeEnums.Patate, nb)) _ressources.Retirer(ResourceTypeEnums.Patate, nb);
+                else _population.Retirer(1);
             }
-            catch { }
-
-            foreach (var b in copieBatiments) { if (b is ProductionBuilding p) p.Produire(_ressources); }
-
-                // 5. PAUSE POUR LIRE LE RESULTAT
-                // Comme on fait un AnsiConsole.Clear() au début de la boucle (dans ShowDashboard),
-                // il faut laisser le temps au joueur de lire le résultat de son action.
-                ui.WriteMessage("\n[grey]Appuyez sur une touche pour continuer...[/]");
-                Console.ReadKey(true);
-            }
+            await Task.Delay(1000);
         }
     }
 }
