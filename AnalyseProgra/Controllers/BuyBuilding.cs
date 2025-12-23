@@ -11,7 +11,7 @@ namespace AnalyseProgra.Controllers
         private Dictionary<string, Func<Building>> _buildings;
 
         public BuyBuilding(Player player)
-            : base("Acheter un bâtiment", "Permet d'acheter des structures.")
+            : base("Acheter un bâtiment", "Permet d'acheter un bâtiment.")
         {
             _player = player;
 

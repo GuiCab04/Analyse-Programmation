@@ -1,5 +1,4 @@
-﻿
-using AnalyseProgra.Models.Users;
+﻿using AnalyseProgra.Models.Users;
 using AnalyseProgra.UserInterfaces;
 using AnalyseProgra.Views;
 using AnalyseProgra.Controllers;
@@ -14,8 +13,8 @@ namespace testSpectre
 
             var users = new List<User>
             {
-                new Player("Player1", 100),
-                new Player("Player2", 200)
+                new Player("Player1"),
+                new Player("Player2")
             };
 
 

@@ -7,16 +7,11 @@ namespace AnalyseProgra.Views
     {
         public override void ShowDashboard(User user)
         {
-            Player player;
-            try
+            if (user is not Player)
             {
-                player = (Player)user;
-            } catch (InvalidCastException)
-            {
-                WriteError("L'utilisateur fourni n'est pas un joueur valide.");
-                return;
+                throw new ArgumentException("L'utilisateur doit être un joueur.");
             }
-
+            Player player = (Player)user;
             AnsiConsole.Clear();
 
             WriteTitle($"Tableau de bord de {player.Name}");
