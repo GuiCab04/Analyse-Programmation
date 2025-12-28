@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="game.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Update="ap.sql">
+      <Generator>vide</Generator>
     </None>
   </ItemGroup>
 

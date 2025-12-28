@@ -1,8 +1,9 @@
 ﻿using AnalyseProgra.DataAccess.Dao;
 using AnalyseProgra.DataAccess.Interface;
 using AnalyseProgra.Models;
+using AnalyseProgra.Models.Enums;
 using System;
-using System.Text.Json;
+using System.Linq;
 
 namespace AnalyseProgra
 {
@@ -10,191 +11,86 @@ namespace AnalyseProgra
     {
         static void Main(string[] args)
         {
-            // --- DAO Instanciation ---
-            IRoleDao roleDao = new RoleDao();
             IUserDao userDao = new UserDao();
             IColonyDao colonyDao = new ColonyDao();
+            IColonyBuildingStackDao buildingDao = new ColonyBuildingStackDao();
+            IColonyResourceDao resourceDao = new ColonyResourceDao();
 
-            IResourceTypeDao resourceDao = new ResourceTypeDao();
-            IColonyResourceDao colonyResourceDao = new ColonyResourceDao();
-
-            IBuildingTypeDao buildingTypeDao = new BuildingTypeDao();
-            IBuildingTypeCostDao buildingCostDao = new BuildingTypeCostDao();
-            IColonyBuildingDao colonyBuildingDao = new ColonyBuildingDao();
-
-            IColonyPopulationDao populationDao = new ColonyPopulationDao();
-
-            IModerationActionDao modDao = new ModerationActionDao();
-            IGameSaveDao saveDao = new GameSaveDao();
-
-            // 1️⃣ ROLE
-            var adminRole = roleDao.GetByName("ADMIN") ?? roleDao.Create(new Role { Name = "ADMIN" });
-
-            // 2️⃣ USER
-            var adminUser = userDao.GetByUsername("admin")
+            var admin = userDao.GetByUsername("admin")
                 ?? userDao.Create(new User
                 {
                     Username = "admin",
                     PasswordHash = "pass123",
-                    RoleId = adminRole.Id,
+                    Role = UserRole.Admin,
                     IsActive = true
                 });
 
-            // 3️⃣ COLONY
-            var colony = colonyDao.GetByUserId(adminUser.Id)
-                ?? colonyDao.Create(new Colony
+            var colonies = colonyDao.GetByOwner(admin.Username, includeDetails: true).ToList();
+
+            if (!colonies.Any())
+            {
+                var createdColony = colonyDao.Create(new Colony
                 {
-                    UserId = adminUser.Id,
-                    Name = "New Hope"
-                });
-
-            // 4️⃣ RESOURCE TYPES (PK = Name)
-            var food = resourceDao.GetByName("Food")
-                ?? resourceDao.Create(new ResourceType { Name = "Food" });
-
-            var wood = resourceDao.GetByName("Wood")
-                ?? resourceDao.Create(new ResourceType { Name = "Wood" });
-
-            // 5️⃣ COLONY RESOURCES (FK = resource_types.name)
-            var foodStock = colonyResourceDao.Get(colony.Id, food.Name)
-                ?? colonyResourceDao.Create(new ColonyResource
-                {
-                    ColonyId = colony.Id,
-                    ResourceTypeId = food.Name,
-                    Quantity = 200,
-                    ProductionRate = 5,
-                    ConsumptionRate = 2
-                });
-
-            // (optionnel) stock wood
-            var woodStock = colonyResourceDao.Get(colony.Id, wood.Name)
-                ?? colonyResourceDao.Create(new ColonyResource
-                {
-                    ColonyId = colony.Id,
-                    ResourceTypeId = wood.Name,
-                    Quantity = 120,
-                    ProductionRate = 2,
-                    ConsumptionRate = 0.5
-                });
-
-            // 6️⃣ BUILDING TYPES (PK = Name)
-            var farm = buildingTypeDao.GetByName("Farm")
-                ?? buildingTypeDao.Create(new BuildingType
-                {
-                    Name = "Farm",
-                    Description = "Produces food."
-                });
-
-            // 7️⃣ BUILDING COSTS (FK = building_types.name + resource_types.name)
-            var farmCostFood = buildingCostDao.Get(farm.Name, food.Name)
-                ?? buildingCostDao.Create(new BuildingTypeCost
-                {
-                    BuildingTypeId = farm.Name,
-                    ResourceTypeId = food.Name,
-                    Amount = 50
-                });
-
-            var farmCostWood = buildingCostDao.Get(farm.Name, wood.Name)
-                ?? buildingCostDao.Create(new BuildingTypeCost
-                {
-                    BuildingTypeId = farm.Name,
-                    ResourceTypeId = wood.Name,
-                    Amount = 20
-                });
-
-            // 8️⃣ COLONY BUILDINGS (PK = colony_id + building_type_id)
-            var colonyFarm = colonyBuildingDao.GetByColonyAndType(colony.Id, farm.Name)
-                ?? colonyBuildingDao.Create(new ColonyBuilding
-                {
-                    ColonyId = colony.Id,
-                    BuildingTypeId = farm.Name,
-                    Level = 1
-                });
-
-            // 9️⃣ POPULATION
-            var population = populationDao.Get(colony.Id)
-                ?? populationDao.Create(new ColonyPopulation
-                {
-                    ColonyId = colony.Id,
+                    OwnerUsername = admin.Username,
+                    Name = "New Hope",
                     PopulationCount = 10,
-                    Morale = 95
+                    Morale = 100
                 });
 
-            // 🔟 MODERATION ACTION
-            modDao.Create(new ModerationAction
-            {
-                PerformedByUserId = adminUser.Id,
-                TargetUserId = adminUser.Id,
-                ActionType = "INFO",
-                Details = "Admin self-check"
-            });
+                colonies = colonyDao.GetByOwner(admin.Username, includeDetails: true).ToList();
+            }
 
-            // 1️⃣1️⃣ GAME SAVE JSON
-            var save = new GameSave
-            {
-                UserId = adminUser.Id,
-                ColonyId = colony.Id,
-                SaveName = "First Save",
-                DataJson = JsonSerializer.Serialize(new
+            var colony = colonies.First();
+
+            var farmStack = buildingDao.GetOne(colony.Id, BuildingType.Farm, 1)
+                ?? buildingDao.Create(new ColonyBuildingStack
                 {
-                    Colony = colony,
-                    Resources = colonyResourceDao.GetByColony(colony.Id),
-                    Buildings = colonyBuildingDao.GetByColony(colony.Id),
-                    Population = population
-                })
-            };
+                    ColonyId = colony.Id,
+                    BuildingType = BuildingType.Farm,
+                    Level = 1,
+                    Amount = 2
+                });
 
-            saveDao.Create(save);
+            var foodRes = resourceDao.GetOne(colony.Id, "Food")
+                ?? resourceDao.Create(new ColonyResource
+                {
+                    ColonyId = colony.Id,
+                    ResourceName = "Food",
+                    Quantity = 150
+                });
 
-            // --------------------------
-            //   AFFICHAGE DES RESULTATS
-            // --------------------------
+            var loadedUser = userDao.GetById(admin.Id)!;
+            loadedUser.Colonies = colonyDao.GetByOwner(loadedUser.Username, includeDetails: true).ToList();
 
-            Console.WriteLine("\n=== ROLES ===");
-            foreach (var r in roleDao.GetAll())
-                Console.WriteLine($"{r.Id} - {r.Name}");
+            Console.WriteLine("=== TEST OO ===");
+            Console.WriteLine($"{loadedUser.Username} ({loadedUser.Role})");
 
-            Console.WriteLine("\n=== USERS ===");
-            foreach (var u in userDao.GetAll())
-                Console.WriteLine($"{u.Id} - {u.Username} (Role={u.RoleId})");
+            foreach (var c in loadedUser.Colonies)
+            {
+                Console.WriteLine($"Colony: {c.Name}");
 
-            Console.WriteLine("\n=== COLONIES ===");
-            foreach (var c in colonyDao.GetAll())
-                Console.WriteLine($"{c.Id} - {c.Name} (UserId={c.UserId})");
+                Console.WriteLine("  Buildings:");
+                if (c.BuildingStacks != null)
+                {
+                    foreach (var b in c.BuildingStacks)
+                        Console.WriteLine($"    {b.BuildingType} L{b.Level} x{b.Amount}");
+                }
 
-            Console.WriteLine("\n=== RESOURCE TYPES ===");
-            foreach (var rt in resourceDao.GetAll())
-                Console.WriteLine($"{rt.Name}");
+                Console.WriteLine("  Resources:");
+                if (c.Resources != null)
+                {
+                    foreach (var r in c.Resources)
+                        Console.WriteLine($"    {r.ResourceName}: {r.Quantity}");
+                }
+            }
 
-            Console.WriteLine("\n=== COLONY RESOURCES ===");
-            foreach (var cr in colonyResourceDao.GetByColony(colony.Id))
-                Console.WriteLine($"{cr.ColonyId} - Res {cr.ResourceTypeId}: {cr.Quantity} (prod={cr.ProductionRate}, cons={cr.ConsumptionRate})");
-
-            Console.WriteLine("\n=== BUILDING TYPES ===");
-            foreach (var bt in buildingTypeDao.GetAll())
-                Console.WriteLine($"{bt.Name} - {bt.Description}");
-
-            Console.WriteLine("\n=== BUILDING COSTS (Farm) ===");
-            foreach (var bc in buildingCostDao.GetByBuildingType(farm.Name))
-                Console.WriteLine($"Farm cost res {bc.ResourceTypeId} = {bc.Amount}");
-
-            Console.WriteLine("\n=== COLONY BUILDINGS ===");
-            foreach (var b in colonyBuildingDao.GetByColony(colony.Id))
-                Console.WriteLine($"Colony {b.ColonyId} - Type {b.BuildingTypeId} (Level {b.Level})");
-
-            Console.WriteLine("\n=== POPULATION ===");
-            var pop = populationDao.Get(colony.Id);
-            Console.WriteLine($"{pop.ColonyId} - {pop.PopulationCount} habitants, morale {pop.Morale}");
-
-            Console.WriteLine("\n=== MODERATION ACTIONS ===");
-            foreach (var m in modDao.GetAll())
-                Console.WriteLine($"{m.Id} - {m.ActionType} - {m.Details}");
-
-            Console.WriteLine("\n\n✔ TEST GLOBAL TERMINE ✔");
+            Console.WriteLine("\n✔ TEST FINI");
             Console.ReadKey();
         }
     }
 }
+
+
 
 
 /* using AnalyseProgra.Models.Enums;

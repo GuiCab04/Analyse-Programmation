@@ -1,51 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AnalyseProgra.DataAccess.Interface;
 using AnalyseProgra.Models;
 using Microsoft.Data.Sqlite;
-using System.Collections.Generic;
-using AnalyseProgra.DataAccess.Interface;
-using AnalyseProgra.DataAccess;
 
 namespace AnalyseProgra.DataAccess.Dao
 {
     public class ColonyDao : IColonyDao
     {
-        public Colony? GetById(int id)
+        public Colony? GetById(int id, bool includeDetails = false)
         {
             using var conn = Db.GetConnection();
             conn.Open();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT id, user_id, name
-                FROM colonies
-                WHERE id = $id;";
+                SELECT id, owner_username, name, population_count, morale
+                FROM colony
+                WHERE id = $id;
+            ";
             cmd.Parameters.AddWithValue("$id", id);
 
             using var reader = cmd.ExecuteReader();
-            return reader.Read() ? Map(reader) : null;
+            if (!reader.Read())
+                return null;
+
+            var colony = Map(reader);
+
+            if (includeDetails)
+                LoadDetails(colony);
+
+            return colony;
         }
 
-        public Colony? GetByUserId(int userId)
+        public IEnumerable<Colony> GetByOwner(string username, bool includeDetails = false)
         {
+            var colonies = new List<Colony>();
+
             using var conn = Db.GetConnection();
             conn.Open();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT id, user_id, name
-                FROM colonies
-                WHERE user_id = $uid;";
-            cmd.Parameters.AddWithValue("$uid", userId);
+                SELECT id, owner_username, name, population_count, morale
+                FROM colony
+                WHERE owner_username = $u;
+            ";
+            cmd.Parameters.AddWithValue("$u", username);
 
             using var reader = cmd.ExecuteReader();
-            return reader.Read() ? Map(reader) : null;
+            while (reader.Read())
+                colonies.Add(Map(reader));
+
+            if (!includeDetails)
+                return colonies;
+
+            foreach (var c in colonies)
+                LoadDetails(c);
+
+            return colonies;
         }
 
-        public IEnumerable<Colony> GetAll()
+        public IEnumerable<Colony> GetAll(bool includeDetails = false)
         {
             var list = new List<Colony>();
 
@@ -53,13 +69,20 @@ namespace AnalyseProgra.DataAccess.Dao
             conn.Open();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT id, user_id, name FROM colonies;";
+            cmd.CommandText = @"
+                SELECT id, owner_username, name, population_count, morale
+                FROM colony;
+            ";
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
-            {
                 list.Add(Map(reader));
-            }
+
+            if (!includeDetails)
+                return list;
+
+            foreach (var colony in list)
+                LoadDetails(colony);
 
             return list;
         }
@@ -71,17 +94,19 @@ namespace AnalyseProgra.DataAccess.Dao
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO colonies (user_id, name)
-                VALUES ($uid, $name);
+                INSERT INTO colony (owner_username, name, population_count, morale)
+                VALUES ($o, $n, $p, $m);
 
                 SELECT last_insert_rowid();
             ";
-
-            cmd.Parameters.AddWithValue("$uid", colony.UserId);
-            cmd.Parameters.AddWithValue("$name", colony.Name);
+            cmd.Parameters.AddWithValue("$o", colony.OwnerUsername);
+            cmd.Parameters.AddWithValue("$n", colony.Name);
+            cmd.Parameters.AddWithValue("$p", colony.PopulationCount);
+            cmd.Parameters.AddWithValue("$m", colony.Morale);
 
             var newId = (long)cmd.ExecuteScalar();
             colony.Id = (int)newId;
+
             return colony;
         }
 
@@ -92,14 +117,17 @@ namespace AnalyseProgra.DataAccess.Dao
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                UPDATE colonies
-                SET user_id = $uid,
-                    name = $name
+                UPDATE colony
+                SET owner_username = $o,
+                    name = $n,
+                    population_count = $p,
+                    morale = $m
                 WHERE id = $id;
             ";
-
-            cmd.Parameters.AddWithValue("$uid", colony.UserId);
-            cmd.Parameters.AddWithValue("$name", colony.Name);
+            cmd.Parameters.AddWithValue("$o", colony.OwnerUsername);
+            cmd.Parameters.AddWithValue("$n", colony.Name);
+            cmd.Parameters.AddWithValue("$p", colony.PopulationCount);
+            cmd.Parameters.AddWithValue("$m", colony.Morale);
             cmd.Parameters.AddWithValue("$id", colony.Id);
 
             cmd.ExecuteNonQuery();
@@ -110,11 +138,21 @@ namespace AnalyseProgra.DataAccess.Dao
             using var conn = Db.GetConnection();
             conn.Open();
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM colonies WHERE id = $id;";
-            cmd.Parameters.AddWithValue("$id", id);
+            using var tx = conn.BeginTransaction();
 
+            var stackDao = new ColonyBuildingStackDao();
+            var resDao = new ColonyResourceDao();
+
+            stackDao.DeleteByColony(id);
+            resDao.DeleteByColony(id);
+
+            using var cmd = conn.CreateCommand();
+            cmd.Transaction = tx;
+            cmd.CommandText = "DELETE FROM colony WHERE id = $id;";
+            cmd.Parameters.AddWithValue("$id", id);
             cmd.ExecuteNonQuery();
+
+            tx.Commit();
         }
 
         private static Colony Map(SqliteDataReader r)
@@ -122,9 +160,20 @@ namespace AnalyseProgra.DataAccess.Dao
             return new Colony
             {
                 Id = r.GetInt32(0),
-                UserId = r.GetInt32(1),
-                Name = r.GetString(2)
+                OwnerUsername = r.GetString(1),
+                Name = r.GetString(2),
+                PopulationCount = r.GetInt32(3),
+                Morale = r.GetDouble(4)
             };
+        }
+
+        private static void LoadDetails(Colony colony)
+        {
+            var stackDao = new ColonyBuildingStackDao();
+            var resDao = new ColonyResourceDao();
+
+            colony.BuildingStacks = new List<ColonyBuildingStack>(stackDao.GetByColonyId(colony.Id));
+            colony.Resources = new List<ColonyResource>(resDao.GetByColonyId(colony.Id));
         }
     }
 }
