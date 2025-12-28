@@ -6,9 +6,18 @@ namespace AnalyseProgra.Views
 {
     public abstract class SpectreInterface : IUserInterface
     {
+        public SpectreInterface()
+        {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+        }
+
         public T Ask<T>(string prompt)
         {
             return AnsiConsole.Ask<T>($"[bold yellow]{prompt}[/]:");
+        }
+        public bool Confirm(string prompt)
+        {
+            return AnsiConsole.Confirm($"[yellow]{prompt}[/]");
         }
 
         public T Select<T>(string prompt, IEnumerable<T> choices, Func<T, string>? displaySelector = null)
@@ -41,6 +50,14 @@ namespace AnalyseProgra.Views
             AnsiConsole.Write(new Rule($"[red]{title}[/]"));
         }
 
-        public abstract void ShowDashboard(User user);
+        public void Pause()
+        {
+            AnsiConsole.MarkupLine("[grey]Appuyez sur une touche...[/]"); Console.ReadKey(true);
+        }
+
+        public void ClearScreen()
+        {
+            AnsiConsole.Clear();
+        }
     }
 }
