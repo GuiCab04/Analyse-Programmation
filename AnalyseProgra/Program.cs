@@ -1,39 +1,35 @@
 ﻿using AnalyseProgra.Models.Enums;
-using AnalyseProgra.Models.Buildings;
+using AnalyseProgra.Models;
 using AnalyseProgra.Views;
+using AnalyseProgra.DataAccess.Dao;
 
 class Program
 {
     // --- GESTIONNAIRES ---
-    static ResourceManager _ressources = new ResourceManager();
-    static PopulationManager _population = new PopulationManager();
+    static Colony? Colony = new ColonyDao().GetById(1, true);
+    static ResourceManager _ressources = new ResourceManager(Colony);
+    static PopulationManager _population = new PopulationManager(Colony);
     static object _verrouBatiments = new object();
-    static List<Building> _batiments = new List<Building>();
     static bool _jeuEnCours = true;
 
     static async Task Main(string[] args)
     {
-        PlayerUI ui = new PlayerUI(_ressources, _population, _batiments);
-        // 1. INITIALISATION
-        _ressources.Ajouter(ResourceTypeEnums.Fer, 50);
-        lock (_verrouBatiments)
+        PlayerUI ui = new PlayerUI(_ressources, _population, Colony.BuildingStacks);
+        // Init
+        Colony.BuildingStacks.Add(new ColonyBuildingStack
         {
-            _batiments.Add(new Mine(ResourceTypeEnums.Fer));
-            _batiments.Add(new Ferme());
-            _batiments.Add(new HousingBuilding());
-        }
-        _population.UpdateMaxPopulation(_batiments);
-
-        // 2. MOTEUR
+            BuildingType = BuildingType.Factory,
+            Level = 50,
+            Amount = 2,
+            Colony = Colony
+        });
+        
         var tacheMoteur = Task.Run(() => BoucleDeJeu());
 
-        // 3. BOUCLE PRINCIPALE
         while (_jeuEnCours)
         {
-            // On lance l'interface Live. Elle rendra la main quand l'utilisateur appuiera sur ENTRÉE.
             string chosenAction = await ui.ShowDashboard();
 
-            // Si on est sorti de la fonction, c'est qu'une action a été validée.
             if (_jeuEnCours)
             {
                 ui.ClearScreen();
@@ -43,8 +39,6 @@ class Program
 
         await tacheMoteur;
     }
-
-    // --- LOGIQUE ACTIONS ---
 
     static void ExecuterActionMenu(string choix, PlayerUI ui)
     {
@@ -62,13 +56,27 @@ class Program
     {
         while (_jeuEnCours)
         {
-            List<Building> copieBatiments;
-            lock (_verrouBatiments) { copieBatiments = _batiments.ToList(); }
+            _population.UpdateMaxPopulation();
+            _ressources.UpdateMaxStorage();
 
-            _population.UpdateMaxPopulation(copieBatiments);
-            _ressources.UpdateMaxStorage(copieBatiments);
+            if (Colony.BuildingStacks != null)
+            {
+                foreach (var stack in Colony.BuildingStacks)
+                {
+                    switch (stack.BuildingType)
+                    {
+                        case BuildingType.Farm:
+                            int productionNourriture = (stack.Level * 5) * stack.Amount;
+                            _ressources.Ajouter(ResourceTypeEnums.Patate, productionNourriture);
+                            break;
 
-            foreach (var b in copieBatiments) { if (b is ProductionBuilding p) p.Produire(_ressources); }
+                        case BuildingType.Factory:
+                            int productionFer = (stack.Level * 2) * stack.Amount;
+                            _ressources.Ajouter(ResourceTypeEnums.Fer, productionFer);
+                            break;
+                    }
+                }
+            }
 
             int nb = _population.GetStock();
             if (nb > 0)

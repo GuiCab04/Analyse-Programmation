@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AnalyseProgra.Models
+﻿namespace AnalyseProgra.Models
 {
     public class ColonyResource
     {
         public int ColonyId { get; set; }
-        public string ResourceTypeId { get; set; } = null!;
-
+        public string ResourceName { get; set; } = "";
         public double Quantity { get; set; }
-        public double ProductionRate { get; set; }
-        public double ConsumptionRate { get; set; }
+        public Colony? Colony { get; set; }
     }
 }

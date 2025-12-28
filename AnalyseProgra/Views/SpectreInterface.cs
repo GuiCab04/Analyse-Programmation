@@ -1,5 +1,4 @@
-﻿using AnalyseProgra.Models.Users;
-using Spectre.Console;
+﻿using Spectre.Console;
 using AnalyseProgra.UserInterfaces;
 
 namespace AnalyseProgra.Views

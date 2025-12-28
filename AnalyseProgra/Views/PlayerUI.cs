@@ -1,8 +1,7 @@
 ﻿using Spectre.Console;
-using AnalyseProgra.Models.Users;
 using AnalyseProgra.Models.Enums;
 using Spectre.Console.Rendering;
-using AnalyseProgra.Models.Buildings;
+using AnalyseProgra.Models;
 
 namespace AnalyseProgra.Views
 {
@@ -10,13 +9,13 @@ namespace AnalyseProgra.Views
     {
         private ResourceManager _ressources;
         private PopulationManager _population;
-        private List<Building> _batiments;
+        private ICollection<ColonyBuildingStack> _batiments;
 
-        public PlayerUI(ResourceManager ressources, PopulationManager population, List<Building> batiments) : base()
+        public PlayerUI(ResourceManager ressources, PopulationManager population, ICollection<ColonyBuildingStack> buildings) : base()
         {
             _ressources = ressources;
             _population = population;
-            _batiments = batiments;
+            _batiments = buildings;
         }
 
         public void AfficherBatiments(object verrouBatiments)
@@ -32,18 +31,9 @@ namespace AnalyseProgra.Views
                 int index = 0;
                 foreach (var b in _batiments)
                 {
-                    string details = "";
                     string color = "white";
 
-                    if (b is ProductionBuilding prod) { details = $"Prod: [green]+{prod.TauxProduction}[/] {prod.ResourceProduite}/s"; color = "yellow"; }
-                    else if (b is HousingBuilding house) { details = $"Lits: [blue]{house.CapaciteHabitants}[/]"; color = "cyan"; }
-                    else if (b is StorageBuilding storage)
-                    {
-                        string type = storage.TypeStockage.HasValue ? storage.TypeStockage.ToString() : "Global";
-                        details = $"Stock: [purple]+{storage.CapaciteAjoutee}[/] ({type})"; color = "grey";
-                    }
-
-                    table.AddRow(index.ToString(), $"[{color}]{b.Nom}[/]", b.Level.ToString(), details);
+                    table.AddRow(index.ToString(), $"[{color}]{b.BuildingType}[/]", b.Level.ToString());
                     index++;
                 }
             }
@@ -53,37 +43,38 @@ namespace AnalyseProgra.Views
 
         public void MenuConstruction(object verrouBatiments)
         {
+            // On mappe les anciens noms vers le nouvel Enum
             var choix = Select("Que voulez-vous [green]construire[/] ?", new[] {
-                    "Mine de Fer (50 Fer)", "Mine d'Or (150 Fer)", "Ferme (30 Fer)",
-                    "Maison (50 Fer)", "Silo Patates (80 Fer)", "Hangar Fer (100 Fer)",
+                    "Usine/Mine (50 Fer)",
+                    "Ferme (30 Fer)",
+                    "Maison (50 Fer)",
+                    "Entrepôt (80 Fer)",
                     "[red]Retour[/]"
                 });
 
             if (choix == "[red]Retour[/]") return;
 
             bool succes = false;
-            if (choix.Contains("Mine de Fer")) succes = TryBuild(50, new Mine(ResourceTypeEnums.Fer), verrouBatiments);
-            else if (choix.Contains("Mine d'Or")) succes = TryBuild(150, new Mine(ResourceTypeEnums.Or), verrouBatiments);
-            else if (choix.Contains("Ferme")) succes = TryBuild(30, new Ferme(), verrouBatiments);
+
+            // Logique adaptée : On passe le TYPE (Enum) et le COÛT
+            if (choix.Contains("Usine")) succes = TryBuild(50, BuildingType.Factory, verrouBatiments);
+            else if (choix.Contains("Ferme")) succes = TryBuild(30, BuildingType.Farm, verrouBatiments);
             else if (choix.Contains("Maison"))
             {
-                succes = TryBuild(50, new HousingBuilding(), verrouBatiments);
-                if (succes) _population.UpdateMaxPopulation(_batiments);
+                succes = TryBuild(50, BuildingType.House, verrouBatiments);
+                // Mise à jour immédiate des max
+                if (succes) _population.UpdateMaxPopulation();
             }
-            else if (choix.Contains("Silo Patates"))
+            else if (choix.Contains("Entrepôt"))
             {
-                succes = TryBuild(80, new StorageBuilding(ResourceTypeEnums.Patate), verrouBatiments);
-                if (succes) _ressources.UpdateMaxStorage(_batiments);
-            }
-            else if (choix.Contains("Hangar Fer"))
-            {
-                succes = TryBuild(100, new StorageBuilding(ResourceTypeEnums.Fer), verrouBatiments);
-                if (succes) _ressources.UpdateMaxStorage(_batiments);
+                succes = TryBuild(80, BuildingType.Warehouse, verrouBatiments);
+                // Mise à jour immédiate des max
+                if (succes) _ressources.UpdateMaxStorage(); // Rappel : UpdateMaxStorage n'a plus besoin d'arguments
             }
 
             if (succes)
             {
-                AnsiConsole.Status().Start("Construction...", ctx => { ctx.Spinner(Spinner.Known.Clock); Thread.Sleep(1500); });
+                AnsiConsole.Status().Start("Construction...", ctx => { ctx.Spinner(Spinner.Known.Clock); Thread.Sleep(1000); });
                 WriteMessage("[green bold]Construction terminée ![/]");
             }
             else
@@ -94,12 +85,35 @@ namespace AnalyseProgra.Views
             Pause();
         }
 
-        private bool TryBuild(int cost, Building b, object verrouBatiments)
+        // Nouvelle signature : On prend BuildingType au lieu de Building object
+        private bool TryBuild(int cost, BuildingType type, object verrouBatiments)
         {
             if (_ressources.HasEnough(ResourceTypeEnums.Fer, cost))
             {
                 _ressources.Retirer(ResourceTypeEnums.Fer, cost);
-                lock (verrouBatiments) { _batiments.Add(b); }
+
+                lock (verrouBatiments)
+                {
+                    // 1. On cherche s'il existe déjà un stack de ce type (niveau 1 par défaut pour la construction)
+                    var existingStack = _batiments.FirstOrDefault(b => b.BuildingType == type && b.Level == 1);
+
+                    if (existingStack != null)
+                    {
+                        // On incrémente juste la quantité
+                        existingStack.Amount++;
+                    }
+                    else
+                    {
+                        // On crée une nouvelle ligne en base
+                        _batiments.Add(new ColonyBuildingStack
+                        {
+                            BuildingType = type,
+                            Level = 1,
+                            Amount = 1,
+                            // ColonyId sera géré par EntityFramework si _batiments vient de _colony.BuildingStacks
+                        });
+                    }
+                }
                 return true;
             }
             return false;
@@ -107,36 +121,68 @@ namespace AnalyseProgra.Views
 
         public void MenuAmelioration(object verrouBatiments)
         {
-            List<string> choices;
+            List<ColonyBuildingStack> upgradeableStacks;
+
             lock (verrouBatiments)
             {
-                if (_batiments.Count == 0) { WriteError("Aucun bâtiment."); Pause(); return; }
-                choices = _batiments.Select((b, i) => $"{i} - {b.Nom} (Niv {b.Level})").ToList();
+                if (_batiments == null || _batiments.Count == 0) { WriteError("Aucun bâtiment."); Pause(); return; }
+                // On convertit en liste pour pouvoir indexer
+                upgradeableStacks = _batiments.ToList();
             }
+
+            // Création du menu de sélection
+            var choices = upgradeableStacks.Select((b, i) => $"{i} - {b.BuildingType} (Niv {b.Level}) x{b.Amount}").ToList();
             choices.Add("[red]Retour[/]");
 
-            var selection = Select("Améliorer ?", choices);
+            var selection = Select("Quel groupe de bâtiments améliorer ?", choices);
             if (selection == "[red]Retour[/]") return;
 
             int index = int.Parse(selection.Split('-')[0].Trim());
-            Building batiment;
-            lock (verrouBatiments) { batiment = _batiments[index]; }
+            ColonyBuildingStack stackSelectionne = upgradeableStacks[index];
 
-            var couts = batiment.GetUpgradeCost();
-            WriteMessage($"Coût pour Niveau {batiment.Level + 1}:");
-            foreach (var c in couts) WriteMessage($"- {c.Value} {c.Key}");
+            // CALCUL DU COÛT (Logique simulée ici faute de classe objet)
+            int coutBase = GetBaseCost(stackSelectionne.BuildingType);
+            int coutUpgrade = coutBase * stackSelectionne.Level; // Exemple : Niv 1 -> 2 coûte 1xBase
 
-            if (Confirm("Confirmer l'amélioration ?"))
+            WriteMessage($"Coût pour passer ce stack au Niveau {stackSelectionne.Level + 1}:");
+            WriteMessage($"- {coutUpgrade} Fer par bâtiment dans le stack");
+            WriteMessage($"[dim](Note: Cela améliorera tout le stack d'un coup ou diviser le stack est complexe)[/]");
+
+            if (Confirm($"Confirmer l'amélioration pour {coutUpgrade} Fer ?"))
             {
-                if (batiment.TryUpgrade(_ressources))
+                if (_ressources.HasEnough(ResourceTypeEnums.Fer, coutUpgrade))
                 {
-                    _population.UpdateMaxPopulation(_batiments);
-                    _ressources.UpdateMaxStorage(_batiments);
-                    WriteMessage("[green]Succès ![/]");
+                    _ressources.Retirer(ResourceTypeEnums.Fer, coutUpgrade);
+
+                    lock (verrouBatiments)
+                    {
+                        // Amélioration simple : On monte le niveau du stack
+                        // Attention : Dans un vrai jeu, on diviserait peut-être le stack si on veut en upgrader qu'un seul
+                        stackSelectionne.Level++;
+                    }
+
+                    // Mise à jour des calculs
+                    _population.UpdateMaxPopulation(); // Conversion ToList nécessaire pour l'ancienne signature
+                    _ressources.UpdateMaxStorage();
+
+                    WriteMessage("[green]Succès ! Niveau augmenté.[/]");
                 }
                 else WriteError("Pas assez de ressources.");
             }
             Pause();
+        }
+
+        // Helper pour retrouver les prix (remplace les classes objets)
+        private int GetBaseCost(BuildingType type)
+        {
+            return type switch
+            {
+                BuildingType.House => 50,
+                BuildingType.Farm => 30,
+                BuildingType.Factory => 100,
+                BuildingType.Warehouse => 80,
+                _ => 50
+            };
         }
 
         public void MenuPopulation()

@@ -1,17 +1,13 @@
-﻿using AnalyseProgra.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using AnalyseProgra.Models;
 
 namespace AnalyseProgra.DataAccess.Interface
 {
     public interface IColonyDao
     {
-        Colony? GetById(int id);
-        Colony? GetByUserId(int userId);
-        IEnumerable<Colony> GetAll();
+        Colony? GetById(int id, bool includeDetails = false);
+        IEnumerable<Colony> GetByOwner(string ownerUsername, bool includeDetails = false);
+        IEnumerable<Colony> GetAll(bool includeDetails = false);
         Colony Create(Colony colony);
         void Update(Colony colony);
         void Delete(int id);

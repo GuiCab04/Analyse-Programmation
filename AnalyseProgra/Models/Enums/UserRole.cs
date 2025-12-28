@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AnalyseProgra.Models
+namespace AnalyseProgra.Models.Enums
 {
-    public class ResourceType
+    public enum UserRole
     {
-        public string Name { get; set; } = null!;
+        Player = 0,
+        Moderator = 1,
+        Admin = 2,
     }
 }
+

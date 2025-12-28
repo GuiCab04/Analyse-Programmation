@@ -1,34 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
-using AnalyseProgra.Models.Buildings;
+using AnalyseProgra.Models;
+using AnalyseProgra.Models.Enums;
 
 public class PopulationManager
 {
     private readonly object _verrou = new object();
 
-    private int _currentPopulation;
+    private Colony _colony;
     private int _maxPopulation;
 
-    public PopulationManager()
+    private int _currentPopulation
     {
-        _currentPopulation = 2; 
+        get { return _colony.PopulationCount; }
+        set { _colony.PopulationCount = value; }
+    }
+
+    public PopulationManager(Colony colony)
+    {
+        _colony = colony;
         _maxPopulation = 0;
     }
 
    
-    public void UpdateMaxPopulation(List<Building> batiments)
+    public void UpdateMaxPopulation()
     {
         lock (_verrou)
         {
             int totalCapacite = 0;
 
-            foreach (var b in batiments)
+            var houseStacks = _colony.BuildingStacks.Where(b => b.BuildingType == BuildingType.House);
+
+            if (houseStacks != null)
             {
-                if (b is HousingBuilding maison)
+                foreach (var stack in houseStacks)
                 {
-                    totalCapacite += maison.CapaciteHabitants;
+                    totalCapacite += stack.Level * 3 * stack.Amount;
                 }
-            }
+            }            
 
             _maxPopulation = totalCapacite;
         }
