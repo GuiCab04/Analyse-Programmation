@@ -5,17 +5,16 @@ namespace AnalyseProgra.Models.Buildings
 {
     public class Ferme : ProductionBuilding
     {
-        
         public Ferme()
             : base("Ferme", ResourceTypeEnums.Patate)
         {
         }
 
-        public override Dictionary<ResourceTypeEnums, int> GetUpgradeCost()
-        {            
-            return new Dictionary<ResourceTypeEnums, int>
+        public override ICollection<ColonyResource>? GetUpgradeCost()
+        {
+            return new List<ColonyResource>
             {
-                { ResourceTypeEnums.Fer, Level * 30 }
+                new ColonyResource(ResourceTypeEnums.Fer, Level * 75),
             };
         }
     }

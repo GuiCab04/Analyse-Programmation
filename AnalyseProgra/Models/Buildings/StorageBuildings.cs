@@ -3,7 +3,7 @@ using AnalyseProgra.Models.Enums;
 
 namespace AnalyseProgra.Models.Buildings
 {
-    public class StorageBuilding : Building
+    public class StorageBuilding : ColonyBuildingStack
     {
         public int CapaciteAjoutee { get; private set; }
 
@@ -17,22 +17,17 @@ namespace AnalyseProgra.Models.Buildings
             CalculateCapacity();
         }
 
-        protected override void ApplyUpgradeEffect()
-        {
-            CalculateCapacity();
-        }
-
         private void CalculateCapacity()
         {
             // Un entrepôt ajoute +200 de capacité par niveau
             CapaciteAjoutee = Level * 200;
         }
 
-        public override Dictionary<ResourceTypeEnums, int> GetUpgradeCost()
+        public override ICollection<ColonyResource>? GetUpgradeCost()
         {
-            return new Dictionary<ResourceTypeEnums, int>
+            return new List<ColonyResource>
             {
-                { ResourceTypeEnums.Fer, Level * 100 }
+                new ColonyResource(ResourceTypeEnums.Fer, Level * 100),
             };
         }
     }

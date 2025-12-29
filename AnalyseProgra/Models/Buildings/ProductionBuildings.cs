@@ -2,7 +2,7 @@
 
 namespace AnalyseProgra.Models.Buildings
 {
-    public abstract class ProductionBuilding : Building
+    public abstract class ProductionBuilding : ColonyBuildingStack
     {
         public int TauxProduction { get; protected set; }
         public ResourceTypeEnums ResourceProduite { get; protected set; }
@@ -17,11 +17,6 @@ namespace AnalyseProgra.Models.Buildings
         public void Produire(ResourceManager manager)
         {
             manager.Ajouter(ResourceProduite, TauxProduction);
-        }
-
-        protected override void ApplyUpgradeEffect()
-        {
-            CalculateProduction();
         }
 
         private void CalculateProduction()

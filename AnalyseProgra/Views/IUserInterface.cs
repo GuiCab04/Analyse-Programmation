@@ -1,7 +1,4 @@
-﻿using AnalyseProgra.Models.Users;
-using Spectre.Console;
-
-namespace AnalyseProgra.UserInterfaces
+﻿namespace AnalyseProgra.UserInterfaces
 {
     public interface IUserInterface
     {

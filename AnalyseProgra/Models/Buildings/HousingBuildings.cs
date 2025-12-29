@@ -3,7 +3,7 @@ using AnalyseProgra.Models.Enums;
 
 namespace AnalyseProgra.Models.Buildings
 {
-    public class HousingBuilding : Building
+    public class HousingBuilding : ColonyBuildingStack
     {
         public int CapaciteHabitants { get; private set; }
 
@@ -18,22 +18,17 @@ namespace AnalyseProgra.Models.Buildings
             // Cette méthode devra être créée dans PopulationManager
         }
 
-        protected override void ApplyUpgradeEffect()
-        {
-            CalculateCapacity();
-        }
-
         private void CalculateCapacity()
         {
             CapaciteHabitants = Level * 4;
         }
 
-        public override Dictionary<ResourceTypeEnums, int> GetUpgradeCost()
+        public override ICollection<ColonyResource>? GetUpgradeCost()
         {
-            return new Dictionary<ResourceTypeEnums, int>
+            return new List<ColonyResource>
             {
-                { ResourceTypeEnums.Fer, Level * 25 },
-                { ResourceTypeEnums.Patate, Level * 50 }
+                new ColonyResource(ResourceTypeEnums.Fer, Level * 25),
+                new ColonyResource(ResourceTypeEnums.Patate, Level * 50)
             };
         }
     }

@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AnalyseProgra.Models.Enums;
 
 namespace AnalyseProgra.Models
 {
     public class ColonyResource
     {
         public int ColonyId { get; set; }
-        public string ResourceTypeId { get; set; } = null!;
-
+        public ResourceTypeEnums ResourceType { get; set; }
         public double Quantity { get; set; }
-        public double ProductionRate { get; set; }
-        public double ConsumptionRate { get; set; }
+        public Colony? Colony { get; set; }
+
+
+        public ColonyResource(ResourceTypeEnums resourceType, double quantity)
+        {
+            ResourceType = resourceType;
+            Quantity = quantity;
+        }
     }
 }

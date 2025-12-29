@@ -2,58 +2,76 @@
 using System.Collections.Generic;
 using System.Linq; // Nécessaire pour ToList()
 using AnalyseProgra.Models.Enums;
-using AnalyseProgra.Models.Buildings; // Nécessaire pour voir "StorageBuilding"
+using AnalyseProgra.Models;
 
 
 public class ResourceManager
 {
     private readonly object _verrou = new object();
 
-    private Dictionary<ResourceTypeEnums, int> _stock;
+    private Colony _colony; // Référence vers l'objet DB
     private Dictionary<ResourceTypeEnums, int> _maxCapacities;
 
-    public ResourceManager()
+    public ResourceManager(Colony colony)
     {
-        _stock = new Dictionary<ResourceTypeEnums, int>();
+        _colony = colony;
         _maxCapacities = new Dictionary<ResourceTypeEnums, int>();
 
-        // C'EST ICI QUE LES MAX SONT DÉFINIS !
         foreach (ResourceTypeEnums type in Enum.GetValues(typeof(ResourceTypeEnums)))
         {
-            _stock[type] = 0;
-            _maxCapacities[type] = 100; // <--- VALEUR PAR DÉFAUT (100)
+            _maxCapacities[type] = 100;
+        }
+
+        if (_colony.Resources == null)
+        {
+            _colony.Resources = new List<ColonyResource>();
         }
     }
 
-    // --- NOUVELLE MÉTHODE POUR LES BATIMENTS DE STOCKAGE ---
-    public void UpdateMaxStorage(List<Building> batiments)
+    private ColonyResource GetOrCreateResource(ResourceTypeEnums type)
+    {
+        string typeName = type.ToString();
+
+        var resourceEntity = _colony.Resources.FirstOrDefault(r => r.ResourceType == type);
+
+        if (resourceEntity == null)
+        {
+            resourceEntity = new ColonyResource(type, 0)
+            {
+                ColonyId = _colony.Id,
+                Colony = _colony
+            };
+            _colony.Resources.Add(resourceEntity);
+        }
+
+        return resourceEntity;
+    }
+
+    public void UpdateMaxStorage()
     {
         lock (_verrou)
         {
-            // 1. On remet tout à la valeur de base (100)
-            // On utilise ToList() pour éviter de modifier la collection qu'on parcourt si nécessaire
             foreach (var type in _maxCapacities.Keys.ToList())
             {
                 _maxCapacities[type] = 100;
             }
 
-            // 2. On ajoute la capacité de chaque bâtiment de stockage
-            foreach (var b in batiments)
+            if (_colony.BuildingStacks != null)
             {
-                if (b is StorageBuilding entrepot)
+                foreach (var stack in _colony.BuildingStacks)
                 {
-                    // Si TypeStockage est null, c'est un Entrepôt Général (valable pour tout)
-                    if (entrepot.TypeStockage == null)
+                    switch (stack.BuildingType)
                     {
-                        foreach (var type in _maxCapacities.Keys.ToList())
-                        {
-                            _maxCapacities[type] += entrepot.CapaciteAjoutee;
-                        }
-                    }
-                    // Sinon, c'est un Silo spécifique (ex: juste pour le Fer)
-                    else if (_maxCapacities.ContainsKey(entrepot.TypeStockage.Value))
-                    {
-                        _maxCapacities[entrepot.TypeStockage.Value] += entrepot.CapaciteAjoutee;
+                        case BuildingType.StorageBuilding:
+                            int capaciteWarehouse = stack.Level * 100 * stack.Amount;
+
+                            foreach (var type in _maxCapacities.Keys.ToList())
+                            {
+                                _maxCapacities[type] += capaciteWarehouse;
+                            }
+                            break;
+
+                            // Possibilité d'ajouter d'autres bâtiments influençant la capacité de stockage
                     }
                 }
             }
@@ -64,16 +82,17 @@ public class ResourceManager
     {
         lock (_verrou)
         {
-            int stockActuel = _stock[type];
-            int max = _maxCapacities[type];
+            var resourceEntity = GetOrCreateResource(type);
 
-            if (stockActuel + quantite < max)
+            int stockActuel = (int)resourceEntity.Quantity;
+            int max = _maxCapacities.ContainsKey(type) ? _maxCapacities[type] : 100;
+
+            int futurStock = stockActuel + quantite;
+            if (futurStock > max) futurStock = max;
+
+            if (futurStock != stockActuel)
             {
-                _stock[type] += quantite;
-            }
-            else
-            {
-                _stock[type] = max; // On plafonne
+                resourceEntity.Quantity = futurStock;
             }
         }
     }
@@ -82,13 +101,16 @@ public class ResourceManager
     {
         lock (_verrou)
         {
-            if (_stock[type] - quantite >= 0)
+            var resourceEntity = GetOrCreateResource(type);
+
+            int stockActuel = (int)resourceEntity.Quantity;
+            int futurStock = stockActuel - quantite;
+
+            if (futurStock < 0) futurStock = 0;
+
+            if (futurStock != stockActuel)
             {
-                _stock[type] -= quantite;
-            }
-            else
-            {
-                _stock[type] = 0;
+                resourceEntity.Quantity = futurStock;
             }
         }
     }
@@ -97,7 +119,11 @@ public class ResourceManager
     {
         lock (_verrou)
         {
-            return _stock[type] >= quantite;
+            var res = _colony.Resources.FirstOrDefault(r => r.ResourceType == type);
+
+            double qte = res != null ? res.Quantity : 0;
+
+            return qte >= quantite;
         }
     }
 
@@ -105,8 +131,8 @@ public class ResourceManager
     {
         lock (_verrou)
         {
-            if (!_stock.ContainsKey(type)) return 0;
-            return _stock[type];
+            var res = _colony.Resources.FirstOrDefault(r => r.ResourceType == type);
+            return res != null ? (int)res.Quantity : 0;
         }
     }
 
@@ -116,15 +142,6 @@ public class ResourceManager
         {
             if (!_maxCapacities.ContainsKey(type)) return 100;
             return _maxCapacities[type];
-        }
-    }
-
-    // Ancienne méthode manuelle (peut être gardée ou supprimée)
-    public void SetMaxCapacity(ResourceTypeEnums type, int newMax)
-    {
-        lock (_verrou)
-        {
-            _maxCapacities[type] = newMax;
         }
     }
 }

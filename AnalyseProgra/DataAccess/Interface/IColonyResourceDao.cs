@@ -1,14 +1,16 @@
-﻿using AnalyseProgra.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using AnalyseProgra.Models;
+using AnalyseProgra.Models.Enums;
 
 namespace AnalyseProgra.DataAccess.Interface
 {
     public interface IColonyResourceDao
     {
-        ColonyResource? Get(int colonyId, string resourceTypeId);
-        IEnumerable<ColonyResource> GetByColony(int colonyId);
-        ColonyResource Create(ColonyResource cr);
-        void Update(ColonyResource cr);
-        void Delete(int colonyId, string resourceTypeId);
+        IEnumerable<ColonyResource> GetByColonyId(int colonyId);
+        ColonyResource? GetOne(int colonyId, ResourceTypeEnums resourceType);
+        ColonyResource Create(ColonyResource resource);
+        void Update(ColonyResource resource);
+        void Delete(int colonyId, ResourceTypeEnums resourceType);
+        void DeleteByColony(int colonyId);
     }
 }
