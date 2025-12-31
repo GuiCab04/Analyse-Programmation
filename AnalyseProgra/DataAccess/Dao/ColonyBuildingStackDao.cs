@@ -5,6 +5,7 @@ using AnalyseProgra.Models;
 using AnalyseProgra.Models.Enums;
 using Microsoft.Data.Sqlite;
 using AnalyseProgra.Models.Buildings;
+using AnalyseProgra.Core.Managers;
 
 namespace AnalyseProgra.DataAccess.Dao
 {
@@ -126,31 +127,11 @@ namespace AnalyseProgra.DataAccess.Dao
         private static ColonyBuildingStack Map(SqliteDataReader r)
         {
             var buildingType = (BuildingType)r.GetInt32(1);
-            ColonyBuildingStack newColonyBuildingStack;
-            switch(buildingType)
-            {
-                case BuildingType.Farm:
-                    newColonyBuildingStack = new Ferme();
-                    break;
-                case BuildingType.HousingBuilding:
-                    newColonyBuildingStack = new HousingBuilding();
-                    break;
-                case BuildingType.IronMine:
-                    newColonyBuildingStack = new Mine(ResourceTypeEnums.Fer);
-                    break;
-                case BuildingType.GoldMine:
-                    newColonyBuildingStack = new Mine(ResourceTypeEnums.Or);
-                    break;
-                case BuildingType.StorageBuilding:
-                    newColonyBuildingStack = new StorageBuilding();
-                    break;
-                default:
-                    throw new InvalidOperationException("Unknown BuildingType");
-            }
+            var buildingLevel = r.GetInt32(2);
+            ColonyBuildingStack newColonyBuildingStack = BuildingManager.BuildBuildingStack(buildingType, buildingLevel);
 
             newColonyBuildingStack.ColonyId = r.GetInt32(0);
             newColonyBuildingStack.BuildingType = buildingType;
-            newColonyBuildingStack.Level = r.GetInt32(2);
             newColonyBuildingStack.Amount = r.GetInt32(3);
             return newColonyBuildingStack;
         }

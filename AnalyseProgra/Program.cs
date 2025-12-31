@@ -12,7 +12,7 @@ class Program
 
     static async Task Main(string[] args)
     {
-        _colony.Buildings.BuildingStacks.Add(new Mine(ResourceTypeEnums.Fer) { BuildingType = BuildingType.IronMine });
+        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
         GameUI ui = new GameUI(_colony);
         
         var tacheMoteur = Task.Run(() => BoucleDeJeu());

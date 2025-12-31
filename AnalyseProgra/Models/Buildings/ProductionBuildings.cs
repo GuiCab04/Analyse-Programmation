@@ -7,8 +7,8 @@ namespace AnalyseProgra.Models.Buildings
         public int TauxProduction { get; protected set; }
         public ResourceTypeEnums ResourceProduite { get; protected set; }
 
-        public ProductionBuilding(string nom, ResourceTypeEnums resourceProduite)
-            : base(nom)
+        public ProductionBuilding(string nom, BuildingType type, int level, ResourceTypeEnums resourceProduite)
+            : base(nom, type, level)
         {
             ResourceProduite = resourceProduite;
             CalculateProduction();

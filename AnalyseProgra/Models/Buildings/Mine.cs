@@ -5,8 +5,11 @@ namespace AnalyseProgra.Models.Buildings
 {
     public class Mine : ProductionBuilding
     {
-        public Mine(ResourceTypeEnums typeMinerai)
-            : base($"Mine de {typeMinerai}", typeMinerai)
+        public Mine(int level, ResourceTypeEnums typeMinerai)
+            : base($"Mine de {typeMinerai}",
+                  typeMinerai == ResourceTypeEnums.Fer ? BuildingType.IronMine : BuildingType.GoldMine,
+                  level,
+                  typeMinerai)
         {
         }
 

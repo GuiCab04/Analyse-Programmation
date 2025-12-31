@@ -93,44 +93,7 @@ namespace AnalyseProgra.Views
             if (_ressources.HasEnough(ResourceTypeEnums.Fer, cost))
             {
                 _ressources.Retirer(ResourceTypeEnums.Fer, cost);
-
-                lock (verrouBatiments)
-                {
-                    // 1. On cherche s'il existe déjà un stack de ce type (niveau 1 par défaut pour la construction)
-                    var existingStack = _batiments.BuildingStacks.FirstOrDefault(b => b.BuildingType == type && b.Level == 1);
-
-                    if (existingStack != null)
-                    {
-                        // On incrémente juste la quantité
-                        existingStack.Amount++;
-                    }
-                    else
-                    {
-                        ColonyBuildingStack newColonyBuildingStack;
-                        switch (type)
-                        {
-                            case BuildingType.Farm:
-                                newColonyBuildingStack = new Ferme();
-                                break;
-                            case BuildingType.HousingBuilding:
-                                newColonyBuildingStack = new HousingBuilding();
-                                break;
-                            case BuildingType.IronMine:
-                                newColonyBuildingStack = new Mine(ResourceTypeEnums.Fer);
-                                break;
-                            case BuildingType.GoldMine:
-                                newColonyBuildingStack = new Mine(ResourceTypeEnums.Or);
-                                break;
-                            case BuildingType.StorageBuilding:
-                                newColonyBuildingStack = new StorageBuilding();
-                                break;
-                            default:
-                                throw new InvalidOperationException("Unknown BuildingType");
-                        }
-                        
-                        _batiments.BuildingStacks.Add(newColonyBuildingStack);
-                    }
-                }
+                _batiments.AddBuilding(type, 1);
                 return true;
             }
             return false;
@@ -170,13 +133,7 @@ namespace AnalyseProgra.Views
                 if (_ressources.HasEnough(ResourceTypeEnums.Fer, coutUpgrade))
                 {
                     _ressources.Retirer(ResourceTypeEnums.Fer, coutUpgrade);
-
-                    lock (verrouBatiments)
-                    {
-                        // Amélioration simple : On monte le niveau du stack
-                        // Attention : Dans un vrai jeu, on diviserait peut-être le stack si on veut en upgrader qu'un seul
-                        stackSelectionne.Level++;
-                    }
+                    _batiments.UpgradeBuilding(stackSelectionne.BuildingType, stackSelectionne.Level);
 
                     // Mise à jour des calculs
                     _population.UpdateMaxPopulation(_batiments); // Conversion ToList nécessaire pour l'ancienne signature

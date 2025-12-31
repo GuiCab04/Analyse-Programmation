@@ -7,7 +7,8 @@ namespace AnalyseProgra.Models.Buildings
     {
         public int CapaciteHabitants { get; private set; }
 
-        public HousingBuilding() : base("Module d'Habitation")
+        public HousingBuilding(int level)
+            : base("Module d'Habitation", BuildingType.HousingBuilding, level)
         {
             CalculateCapacity();
         }

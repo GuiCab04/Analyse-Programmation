@@ -14,16 +14,12 @@ namespace AnalyseProgra.Models
         public string Name { get; set; } = "";
 
 
-        public ColonyBuildingStack(string name, int level, int amount)
+        public ColonyBuildingStack(string name, BuildingType type, int level, int amount = 1)
         {
             Name = name;
+            BuildingType = type;
             Level = level;
             Amount = amount;
-        }
-
-        public ColonyBuildingStack(string name)
-            : this(name, 1, 1)
-        {
         }
 
         public abstract ICollection<ColonyResource>? GetUpgradeCost();
