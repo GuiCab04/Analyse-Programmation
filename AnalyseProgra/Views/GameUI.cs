@@ -3,20 +3,21 @@ using AnalyseProgra.Models.Enums;
 using Spectre.Console.Rendering;
 using AnalyseProgra.Models;
 using AnalyseProgra.Models.Buildings;
+using AnalyseProgra.Core.Managers;
 
 namespace AnalyseProgra.Views
 {
-    public class PlayerUI : SpectreInterface
+    public class GameUI : SpectreInterface
     {
         private ResourceManager _ressources;
         private PopulationManager _population;
-        private ICollection<ColonyBuildingStack> _batiments;
+        private BuildingManager _batiments;
 
-        public PlayerUI(ResourceManager ressources, PopulationManager population, ICollection<ColonyBuildingStack> buildings) : base()
+        public GameUI(Colony colony) : base()
         {
-            _ressources = ressources;
-            _population = population;
-            _batiments = buildings;
+            _ressources = colony.Resources;
+            _population = colony.Population;
+            _batiments = colony.Buildings;
         }
 
         public void AfficherBatiments(object verrouBatiments)
@@ -30,7 +31,7 @@ namespace AnalyseProgra.Views
             lock (verrouBatiments)
             {
                 int index = 0;
-                foreach (var b in _batiments)
+                foreach (var b in _batiments.BuildingStacks)
                 {
                     string color = "white";
 
@@ -64,13 +65,13 @@ namespace AnalyseProgra.Views
             {
                 succes = TryBuild(50, BuildingType.HousingBuilding, verrouBatiments);
                 // Mise à jour immédiate des max
-                if (succes) _population.UpdateMaxPopulation();
+                if (succes) _population.UpdateMaxPopulation(_batiments);
             }
             else if (choix.Contains("Entrepôt"))
             {
                 succes = TryBuild(80, BuildingType.StorageBuilding, verrouBatiments);
                 // Mise à jour immédiate des max
-                if (succes) _ressources.UpdateMaxStorage(); // Rappel : UpdateMaxStorage n'a plus besoin d'arguments
+                if (succes) _ressources.UpdateMaxStorage(_batiments); // Rappel : UpdateMaxStorage n'a plus besoin d'arguments
             }
 
             if (succes)
@@ -96,7 +97,7 @@ namespace AnalyseProgra.Views
                 lock (verrouBatiments)
                 {
                     // 1. On cherche s'il existe déjà un stack de ce type (niveau 1 par défaut pour la construction)
-                    var existingStack = _batiments.FirstOrDefault(b => b.BuildingType == type && b.Level == 1);
+                    var existingStack = _batiments.BuildingStacks.FirstOrDefault(b => b.BuildingType == type && b.Level == 1);
 
                     if (existingStack != null)
                     {
@@ -127,7 +128,7 @@ namespace AnalyseProgra.Views
                                 throw new InvalidOperationException("Unknown BuildingType");
                         }
                         
-                        _batiments.Add(newColonyBuildingStack);
+                        _batiments.BuildingStacks.Add(newColonyBuildingStack);
                     }
                 }
                 return true;
@@ -141,9 +142,9 @@ namespace AnalyseProgra.Views
 
             lock (verrouBatiments)
             {
-                if (_batiments == null || _batiments.Count == 0) { WriteError("Aucun bâtiment."); Pause(); return; }
+                if (_batiments == null || _batiments.BuildingStacks.Count == 0) { WriteError("Aucun bâtiment."); Pause(); return; }
                 // On convertit en liste pour pouvoir indexer
-                upgradeableStacks = _batiments.ToList();
+                upgradeableStacks = _batiments.BuildingStacks.ToList();
             }
 
             // Création du menu de sélection
@@ -178,8 +179,8 @@ namespace AnalyseProgra.Views
                     }
 
                     // Mise à jour des calculs
-                    _population.UpdateMaxPopulation(); // Conversion ToList nécessaire pour l'ancienne signature
-                    _ressources.UpdateMaxStorage();
+                    _population.UpdateMaxPopulation(_batiments); // Conversion ToList nécessaire pour l'ancienne signature
+                    _ressources.UpdateMaxStorage(_batiments);
 
                     WriteMessage("[green]Succès ! Niveau augmenté.[/]");
                 }

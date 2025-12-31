@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AnalyseProgra.Core.Managers;
 using AnalyseProgra.Models;
 using AnalyseProgra.Models.Enums;
 
@@ -7,29 +8,23 @@ public class PopulationManager
 {
     private readonly object _verrou = new object();
 
-    private Colony _colony;
-    private int _maxPopulation;
+    public int MaxPopulation { get; set; }
+    public int CurrentPopulation { get; set; }
 
-    private int _currentPopulation
+    public PopulationManager(int populationCount = 0)
     {
-        get { return _colony.PopulationCount; }
-        set { _colony.PopulationCount = value; }
-    }
-
-    public PopulationManager(Colony colony)
-    {
-        _colony = colony;
-        _maxPopulation = 0;
+        MaxPopulation = 0;
+        CurrentPopulation = populationCount;
     }
 
    
-    public void UpdateMaxPopulation()
+    public void UpdateMaxPopulation(BuildingManager buildingManager)
     {
         lock (_verrou)
         {
             int totalCapacite = 0;
 
-            var houseStacks = _colony.BuildingStacks.Where(b => b.BuildingType == BuildingType.HousingBuilding);
+            var houseStacks = buildingManager.BuildingStacks.Where(b => b.BuildingType == BuildingType.HousingBuilding);
 
             if (houseStacks != null)
             {
@@ -39,7 +34,7 @@ public class PopulationManager
                 }
             }            
 
-            _maxPopulation = totalCapacite;
+            MaxPopulation = totalCapacite;
         }
     }
 
@@ -47,13 +42,13 @@ public class PopulationManager
     {
         lock (_verrou)
         {
-            if (_currentPopulation + quantite <= _maxPopulation)
+            if (CurrentPopulation + quantite <= MaxPopulation)
             {
-                _currentPopulation += quantite;
+                CurrentPopulation += quantite;
             }
             else
             {
-                _currentPopulation = _maxPopulation;
+                CurrentPopulation = MaxPopulation;
             }
         }
     }
@@ -62,13 +57,13 @@ public class PopulationManager
     {
         lock (_verrou)
         {
-            if (_currentPopulation - quantite >= 0)
+            if (CurrentPopulation - quantite >= 0)
             {
-                _currentPopulation -= quantite;
+                CurrentPopulation -= quantite;
             }
             else
             {
-                _currentPopulation = 0;
+                CurrentPopulation = 0;
             }
         }
     }
@@ -77,7 +72,7 @@ public class PopulationManager
     {
         lock (_verrou)
         {
-            return _currentPopulation >= quantite;
+            return CurrentPopulation >= quantite;
         }
     }
 
@@ -85,7 +80,7 @@ public class PopulationManager
     {
         lock (_verrou)
         {
-            return _currentPopulation;
+            return CurrentPopulation;
         }
     }
 
@@ -93,7 +88,7 @@ public class PopulationManager
     {
         lock (_verrou)
         {
-            return $"{_currentPopulation} / {_maxPopulation}";
+            return $"{CurrentPopulation} / {MaxPopulation}";
         }
     }
 }

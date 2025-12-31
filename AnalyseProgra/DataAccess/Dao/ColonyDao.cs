@@ -101,7 +101,7 @@ namespace AnalyseProgra.DataAccess.Dao
             ";
             cmd.Parameters.AddWithValue("$o", colony.OwnerUsername);
             cmd.Parameters.AddWithValue("$n", colony.Name);
-            cmd.Parameters.AddWithValue("$p", colony.PopulationCount);
+            cmd.Parameters.AddWithValue("$p", colony.Population.CurrentPopulation);
             cmd.Parameters.AddWithValue("$m", colony.Morale);
 
             var newId = (long)cmd.ExecuteScalar();
@@ -126,7 +126,7 @@ namespace AnalyseProgra.DataAccess.Dao
             ";
             cmd.Parameters.AddWithValue("$o", colony.OwnerUsername);
             cmd.Parameters.AddWithValue("$n", colony.Name);
-            cmd.Parameters.AddWithValue("$p", colony.PopulationCount);
+            cmd.Parameters.AddWithValue("$p", colony.Population.CurrentPopulation);
             cmd.Parameters.AddWithValue("$m", colony.Morale);
             cmd.Parameters.AddWithValue("$id", colony.Id);
 
@@ -157,14 +157,16 @@ namespace AnalyseProgra.DataAccess.Dao
 
         private static Colony Map(SqliteDataReader r)
         {
-            return new Colony
+            var colony = new Colony
             {
                 Id = r.GetInt32(0),
                 OwnerUsername = r.GetString(1),
                 Name = r.GetString(2),
-                PopulationCount = r.GetInt32(3),
                 Morale = r.GetDouble(4)
             };
+            colony.Population.CurrentPopulation = r.GetInt32(3);
+
+            return colony;
         }
 
         private static void LoadDetails(Colony colony)
@@ -172,8 +174,8 @@ namespace AnalyseProgra.DataAccess.Dao
             var stackDao = new ColonyBuildingStackDao();
             var resDao = new ColonyResourceDao();
 
-            colony.BuildingStacks = new List<ColonyBuildingStack>(stackDao.GetByColonyId(colony.Id));
-            colony.Resources = new List<ColonyResource>(resDao.GetByColonyId(colony.Id));
+            colony.Buildings.BuildingStacks = new List<ColonyBuildingStack>(stackDao.GetByColonyId(colony.Id));
+            colony.Resources.Resources = new List<ColonyResource>(resDao.GetByColonyId(colony.Id));
         }
     }
 }
