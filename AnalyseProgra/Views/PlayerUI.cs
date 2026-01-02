@@ -1,9 +1,7 @@
 ﻿using Spectre.Console;
 using AnalyseProgra.Models.Enums;
 using Spectre.Console.Rendering;
-using AnalyseProgra.Models;
 using AnalyseProgra.Models.Users;
-using AnalyseProgra.Core.Managers;
 using AnalyseProgra.Interactions;
 
 namespace AnalyseProgra.Views
@@ -11,16 +9,10 @@ namespace AnalyseProgra.Views
     public class PlayerUI : SpectreInterface
     {
         private Player _player;
-        private ResourceManager _ressources;
-        private PopulationManager _population;
-        private BuildingManager _batiments;
 
         public PlayerUI(Player player) : base()
         {
             _player = player;
-            _ressources = player.Colony.Resources;
-            _population = player.Colony.Population;
-            _batiments = player.Colony.Buildings;
         }
 
         public async Task<Interaction> ShowDashboard()
@@ -95,7 +87,7 @@ namespace AnalyseProgra.Views
             grid.AddColumn();
 
             // --- POPULATION ---
-            var popActuelle = _population.GetStock();
+            var popActuelle = _player.Colony.Population.GetStock();
             var panelPop = new Panel(
                 Align.Center(new Markup($"[bold yellow]{popActuelle}[/] Habitants  -  [dim]Moral: Stable[/]")))
                 .Header("Population")
@@ -121,8 +113,8 @@ namespace AnalyseProgra.Views
 
             foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
             {
-                int stock = _ressources.GetStock(type);
-                int max = _ressources.GetMax(type);
+                int stock = _player.Colony.Resources.GetStock(type);
+                int max = _player.Colony.Resources.GetMax(type);
 
                 double ratio = max > 0 ? (double)stock / max : 0;
 
