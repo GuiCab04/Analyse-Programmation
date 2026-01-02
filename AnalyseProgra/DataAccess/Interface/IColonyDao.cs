@@ -11,5 +11,6 @@ namespace AnalyseProgra.DataAccess.Interface
         Colony Create(Colony colony);
         void Update(Colony colony);
         void Delete(int id);
+        void SaveWithRelations(Colony colony);
     }
 }

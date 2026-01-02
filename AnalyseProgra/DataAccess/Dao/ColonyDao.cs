@@ -177,5 +177,50 @@ namespace AnalyseProgra.DataAccess.Dao
             colony.Buildings.BuildingStacks = new List<ColonyBuildingStack>(stackDao.GetByColonyId(colony.Id));
             colony.Resources.Resources = new List<ColonyResource>(resDao.GetByColonyId(colony.Id));
         }
+
+        public void SaveWithRelations(Colony colony)
+        {
+            var buildingStackDao = new ColonyBuildingStackDao();
+            var resourceDao = new ColonyResourceDao();
+            
+            if (colony.Id == 0)
+            {
+                Create(colony);
+            }
+            else
+            {
+                Update(colony);
+            }
+
+            var existingResources = resourceDao.GetByColonyId(colony.Id);
+            foreach (var resource in colony.Resources.Resources)
+            {
+                bool resourceExists = existingResources.Any(r => r.ResourceType == resource.ResourceType);
+                if (!resourceExists)
+                {
+                    resource.ColonyId = colony.Id;
+                    resourceDao.Create(resource);
+                }
+                else
+                {
+                    resourceDao.Update(resource);
+                }
+            }
+
+            var existingStacks = buildingStackDao.GetByColonyId(colony.Id);
+            foreach (var stack in colony.Buildings.BuildingStacks)
+            {
+                bool stackExists = existingStacks.Any(s => s.BuildingType == stack.BuildingType && s.Level == stack.Level);
+                if (!stackExists)
+                {
+                    stack.ColonyId = colony.Id;
+                    buildingStackDao.Create(stack);
+                }
+                else
+                {
+                    buildingStackDao.Update(stack);
+                }
+            }
+        }
     }
 }

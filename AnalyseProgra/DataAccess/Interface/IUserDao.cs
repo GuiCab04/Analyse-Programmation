@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AnalyseProgra.Models;
+using AnalyseProgra.Models.Users;
 
 namespace AnalyseProgra.DataAccess.Interface
 {
@@ -11,5 +11,6 @@ namespace AnalyseProgra.DataAccess.Interface
         User Create(User user);
         void Update(User user);
         void Delete(int id);
+        void SaveWithRelations(User user);
     }
 }

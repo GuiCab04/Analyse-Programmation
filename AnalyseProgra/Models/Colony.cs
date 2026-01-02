@@ -1,4 +1,5 @@
 using AnalyseProgra.Core.Managers;
+using AnalyseProgra.Models.Users;
 
 namespace AnalyseProgra.Models
 {

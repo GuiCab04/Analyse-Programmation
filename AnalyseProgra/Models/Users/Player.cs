@@ -1,4 +1,5 @@
-﻿using AnalyseProgra.Interactions.ColonyInteractions ;
+﻿using AnalyseProgra.DataAccess.Interface;
+using AnalyseProgra.Interactions.ColonyInteractions ;
 
 namespace AnalyseProgra.Models.Users
 {
@@ -6,10 +7,10 @@ namespace AnalyseProgra.Models.Users
     {
         public Colony Colony;
 
-        public Player(string name, string password)
-            : base(name, password)
+        public Player(string name, string password, IUserDao dao)
+            : base(name, password, dao)
         {
-            Colony = Colonies != null && Colonies.Count > 0 ? Colonies.First() : new Colony(this, $"Colonie de {name}");
+            Colony = new Colony(this, $"{name}'s Colony");
         }
 
         public override void AddActions()
@@ -21,5 +22,7 @@ namespace AnalyseProgra.Models.Users
 
             base.AddActions();  // Ajoute l'action Quit en dernier
         }
+
+        public override string ToString() => $"{Username} (Joueur)";
     }
 }

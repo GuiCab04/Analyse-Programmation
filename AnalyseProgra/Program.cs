@@ -3,10 +3,12 @@ using AnalyseProgra.Models.Users;
 using AnalyseProgra.Models;
 using AnalyseProgra.Views;
 using AnalyseProgra.Interactions;
+using AnalyseProgra.DataAccess.Dao;
 
 class Program
 {
-    static Player _player = new Player("Justin", "Just123");
+    //static Player _player = new Player("Justin", "Just123", new UserDao());
+    static Player _player = new UserDao().GetById(1, true) as Player;
     static Colony _colony = _player.Colony;
     static object _verrouBatiments = new object();
     static bool _jeuEnCours = true;
@@ -15,11 +17,11 @@ class Program
     {
         _player.AddActions();   // Ne peut pas être dans le constructeur car Colony n'est pas encore initialisée
         
-        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
+        /*_colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
         _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
         _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
         _colony.Buildings.AddBuilding(BuildingType.IronMine, 2);
-        _colony.Buildings.AddBuilding(BuildingType.IronMine, 2);
+        _colony.Buildings.AddBuilding(BuildingType.IronMine, 2);*/
 
         PlayerUI ui = new PlayerUI(_player);
         

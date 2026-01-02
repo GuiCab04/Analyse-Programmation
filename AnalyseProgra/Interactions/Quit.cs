@@ -1,4 +1,6 @@
 ﻿using AnalyseProgra.UserInterfaces;
+using AnalyseProgra.Models.Users;
+
 namespace AnalyseProgra.Interactions
 {
     public class Quit : Interaction
@@ -10,8 +12,13 @@ namespace AnalyseProgra.Interactions
 
         public override void Execute(IUserInterface input)
         {
-            input.WriteMessage("Merci d'avoir joué ! À bientôt !");
-            Environment.Exit(0);
+            var confirmation = input.Confirm("Êtes-vous sûr de vouloir quitter le jeu ? (y/n)");
+            if (confirmation)
+            {
+                input.WriteMessage("Merci d'avoir joué ! À bientôt !");
+                Environment.Exit(0);
+            }      
+            
         }
     }
 }

@@ -135,7 +135,7 @@ namespace AnalyseProgra.DataAccess.Dao
             cmd.ExecuteNonQuery();
         }
 
-        private static User Map(SqliteDataReader r)
+        private User Map(SqliteDataReader r)
         {
             var Role = (UserRole)r.GetInt32(3);
             User user;
@@ -145,10 +145,10 @@ namespace AnalyseProgra.DataAccess.Dao
                     throw new NotImplementedException("Admin user mapping not implemented yet.");
                     break;
                 case UserRole.Player:
-                    user = new Player(r.GetString(1), r.GetString(2));
+                    user = new Player(r.GetString(1), r.GetString(2), this);
                     break;
                 default:
-                    user = new User(r.GetString(1), r.GetString(2));
+                    user = new User(r.GetString(1), r.GetString(2), this);
                     break;
             }
 
@@ -157,7 +157,6 @@ namespace AnalyseProgra.DataAccess.Dao
             user.PasswordHash = r.GetString(2);
             user.Role = Role;
             user.IsActive = r.GetInt32(4) != 0;
-            user.Colonies = new List<Colony>();
 
             return user;
         }
@@ -165,7 +164,28 @@ namespace AnalyseProgra.DataAccess.Dao
         private static void LoadRelations(User user)
         {
             var colonyDao = new ColonyDao();
-            user.Colonies = colonyDao.GetByOwner(user.Username, includeDetails: true).ToList();
+            var colony = colonyDao.GetByOwner(user.Username, includeDetails: true).ToList().FirstOrDefault();
+            if (colony != null && user is Player)
+                ((Player)user).Colony = colony;
+        }
+
+        public void SaveWithRelations(User user)
+        {
+            var colonyDao = new ColonyDao();
+
+            if (user.Id == 0)
+            {
+                Create(user);
+            }
+            else
+            {
+                Update(user);
+            };
+
+            if (user is Player)
+            {
+                colonyDao.SaveWithRelations(((Player)user).Colony);
+            }
         }
     }
 }
