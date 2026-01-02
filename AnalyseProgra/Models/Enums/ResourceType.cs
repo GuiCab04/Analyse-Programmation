@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace AnalyseProgra.Models.Enums
 {
     
-    public enum ResourceTypeEnums
+    public enum ResourceType
     {
         Fer,
         Or,

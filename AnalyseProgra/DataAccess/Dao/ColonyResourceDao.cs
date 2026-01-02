@@ -33,7 +33,7 @@ namespace AnalyseProgra.DataAccess.Dao
             return list;
         }
 
-        public ColonyResource? GetOne(int colonyId, ResourceTypeEnums resourceType)
+        public ColonyResource? GetOne(int colonyId, Models.Enums.ResourceType resourceType)
         {
             using var conn = Db.GetConnection();
             conn.Open();
@@ -87,7 +87,7 @@ namespace AnalyseProgra.DataAccess.Dao
             cmd.ExecuteNonQuery();
         }
 
-        public void Delete(int colonyId, ResourceTypeEnums resourceType)
+        public void Delete(int colonyId, Models.Enums.ResourceType resourceType)
         {
             using var conn = Db.GetConnection();
             conn.Open();
@@ -120,8 +120,8 @@ namespace AnalyseProgra.DataAccess.Dao
 
         private static ColonyResource Map(SqliteDataReader r)
         {
-            var resourceType = (ResourceTypeEnums)r.GetInt32(1);
-            var quantity = r.GetDouble(2);
+            var resourceType = (Models.Enums.ResourceType)r.GetInt32(1);
+            var quantity = r.GetInt32(2);
 
             return new ColonyResource(resourceType, quantity)
             {

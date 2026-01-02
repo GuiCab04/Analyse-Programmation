@@ -5,9 +5,8 @@ namespace AnalyseProgra.Models.Buildings
 {
     public class Mine : ProductionBuilding
     {
-        public Mine(int level, ResourceTypeEnums typeMinerai)
-            : base($"Mine de {typeMinerai}",
-                  typeMinerai == ResourceTypeEnums.Fer ? BuildingType.IronMine : BuildingType.GoldMine,
+        public Mine(int level, ResourceType typeMinerai)
+            : base(typeMinerai == ResourceType.Fer ? BuildingType.IronMine : BuildingType.GoldMine,
                   level,
                   typeMinerai)
         {
@@ -15,12 +14,12 @@ namespace AnalyseProgra.Models.Buildings
 
         public override ICollection<ColonyResource>? GetUpgradeCost()
         {
-            if (ResourceProduite == ResourceTypeEnums.Or)
+            if (ResourceProduite == ResourceType.Or)
             {
                 // Une mine d'Or coûte cher et demande du Fer !
                 return new List<ColonyResource>
                 {
-                    new ColonyResource(ResourceTypeEnums.Fer, Level * 200),
+                    new ColonyResource(ResourceType.Fer, Level * 200),
                 };
             }
             else
@@ -28,7 +27,7 @@ namespace AnalyseProgra.Models.Buildings
                 // Une mine de Fer coûte un peu de Fer
                 return new List<ColonyResource>
                 {
-                    new ColonyResource(ResourceTypeEnums.Fer, Level * 50),
+                    new ColonyResource(ResourceType.Fer, Level * 50),
                 };
             }
         }

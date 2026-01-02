@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS colony_building_stack (
 CREATE TABLE IF NOT EXISTS colony_resource (
     colony_id        INTEGER NOT NULL,
     resource_type    INTEGER    NOT NULL,
-    quantity         REAL    NOT NULL DEFAULT 0,
+    quantity         INTEGER    NOT NULL DEFAULT 0,
     PRIMARY KEY (colony_id, resource_type),
     FOREIGN KEY (colony_id) REFERENCES colony(id) ON DELETE CASCADE
 );

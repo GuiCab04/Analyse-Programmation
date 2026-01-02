@@ -20,5 +20,13 @@ namespace AnalyseProgra.Models
             Population = new PopulationManager();
             Buildings = new BuildingManager();
         }
+
+        public Colony(User owner, string name) : this()
+        {
+            Owner = owner;
+            OwnerUsername = owner.Username;
+            Name = name;
+            Morale = 100.0;
+        }
     }
 }

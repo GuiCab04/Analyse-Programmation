@@ -8,7 +8,7 @@ namespace AnalyseProgra.Models.Buildings
         public int CapaciteHabitants { get; private set; }
 
         public HousingBuilding(int level)
-            : base("Module d'Habitation", BuildingType.HousingBuilding, level)
+            : base(BuildingType.HousingBuilding, level)
         {
             CalculateCapacity();
         }
@@ -28,8 +28,8 @@ namespace AnalyseProgra.Models.Buildings
         {
             return new List<ColonyResource>
             {
-                new ColonyResource(ResourceTypeEnums.Fer, Level * 25),
-                new ColonyResource(ResourceTypeEnums.Patate, Level * 50)
+                new ColonyResource(ResourceType.Fer, Level * 25),
+                new ColonyResource(ResourceType.Patate, Level * 50)
             };
         }
     }

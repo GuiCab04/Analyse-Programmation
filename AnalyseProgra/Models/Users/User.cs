@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using AnalyseProgra.Models.Enums;
-using AnalyseProgra.Controllers;
+using AnalyseProgra.Interactions;
 
 namespace AnalyseProgra.Models
 {
@@ -23,6 +23,10 @@ namespace AnalyseProgra.Models
         {
             Username = username;
             PasswordHash = password; // À hasher plus tard
+        }
+
+        public virtual void AddActions()
+        {
             _avalableActions.Add(new Quit());   // Pas top car crée une nouvelle instance à chaque fois
         }
 

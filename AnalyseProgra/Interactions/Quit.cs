@@ -1,6 +1,5 @@
 ﻿using AnalyseProgra.UserInterfaces;
-using System;
-namespace AnalyseProgra.Controllers
+namespace AnalyseProgra.Interactions
 {
     public class Quit : Interaction
     {

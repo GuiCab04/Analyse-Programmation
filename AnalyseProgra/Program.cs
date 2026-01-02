@@ -1,47 +1,44 @@
 ﻿using AnalyseProgra.Models.Enums;
+using AnalyseProgra.Models.Users;
 using AnalyseProgra.Models;
 using AnalyseProgra.Views;
-using AnalyseProgra.DataAccess.Dao;
-using AnalyseProgra.Models.Buildings;
+using AnalyseProgra.Interactions;
 
 class Program
 {
-    static Colony _colony = new Colony();
+    static Player _player = new Player("Justin", "Just123");
+    static Colony _colony = _player.Colony;
     static object _verrouBatiments = new object();
     static bool _jeuEnCours = true;
 
     static async Task Main(string[] args)
     {
-        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
-        GameUI ui = new GameUI(_colony);
+        _player.AddActions();   // Ne peut pas être dans le constructeur car Colony n'est pas encore initialisée
         
-        var tacheMoteur = Task.Run(() => BoucleDeJeu());
+        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
+        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
+        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
+        _colony.Buildings.AddBuilding(BuildingType.IronMine, 2);
+        _colony.Buildings.AddBuilding(BuildingType.IronMine, 2);
+
+        PlayerUI ui = new PlayerUI(_player);
+        
+        var tacheMoteur = Task.Run(BoucleDeJeu);
 
         while (_jeuEnCours)
         {
-            string chosenAction = await ui.ShowDashboard();
+            Interaction chosenAction = await ui.ShowDashboard();
 
             if (_jeuEnCours)
             {
                 ui.ClearScreen();
-                ExecuterActionMenu(chosenAction, ui);
+                chosenAction.Execute(ui);
             }
         }
 
         await tacheMoteur;
     }
 
-    static void ExecuterActionMenu(string choix, GameUI ui)
-    {
-        switch (choix)
-        {
-            case "Voir mes Bâtiments": ui.AfficherBatiments(_verrouBatiments); break;
-            case "Construire un Bâtiment": ui.MenuConstruction(_verrouBatiments); break;
-            case "Améliorer un Bâtiment": ui.MenuAmelioration(_verrouBatiments); break;
-            case "Gérer Population (Debug)": ui.MenuPopulation(); break;
-            case "Quitter": _jeuEnCours = false; break;
-        }
-    }
 
     static async Task BoucleDeJeu()
     {
@@ -58,12 +55,12 @@ class Program
                     {
                         case BuildingType.Farm:
                             int productionNourriture = (stack.Level * 5) * stack.Amount;
-                            _colony.Resources.Ajouter(ResourceTypeEnums.Patate, productionNourriture);
+                            _colony.Resources.Ajouter(ResourceType.Patate, productionNourriture);
                             break;
 
                         case BuildingType.IronMine:
                             int productionFer = (stack.Level * 2) * stack.Amount;
-                            _colony.Resources.Ajouter(ResourceTypeEnums.Fer, productionFer);
+                            _colony.Resources.Ajouter(ResourceType.Fer, productionFer);
                             break;
                     }
                 }
@@ -72,7 +69,7 @@ class Program
             int nb = _colony.Population.GetStock();
             if (nb > 0)
             {
-                if (_colony.Resources.HasEnough(ResourceTypeEnums.Patate, nb)) _colony.Resources.Retirer(ResourceTypeEnums.Patate, nb);
+                if (_colony.Resources.HasEnough(ResourceType.Patate, nb)) _colony.Resources.Retirer(ResourceType.Patate, nb);
                 else _colony.Population.Retirer(1);
             }
             await Task.Delay(1000);

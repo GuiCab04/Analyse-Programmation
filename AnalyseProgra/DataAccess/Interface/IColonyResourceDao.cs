@@ -7,10 +7,10 @@ namespace AnalyseProgra.DataAccess.Interface
     public interface IColonyResourceDao
     {
         IEnumerable<ColonyResource> GetByColonyId(int colonyId);
-        ColonyResource? GetOne(int colonyId, ResourceTypeEnums resourceType);
+        ColonyResource? GetOne(int colonyId, ResourceType resourceType);
         ColonyResource Create(ColonyResource resource);
         void Update(ColonyResource resource);
-        void Delete(int colonyId, ResourceTypeEnums resourceType);
+        void Delete(int colonyId, ResourceType resourceType);
         void DeleteByColony(int colonyId);
     }
 }

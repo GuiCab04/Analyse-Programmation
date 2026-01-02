@@ -1,4 +1,5 @@
 ﻿using AnalyseProgra.Models.Enums;
+using AnalyseProgra.Core.Managers;
 
 namespace AnalyseProgra.Models
 {
@@ -11,12 +12,16 @@ namespace AnalyseProgra.Models
         public int Amount { get; set; }
 
         // Additional properties
-        public string Name { get; set; } = "";
-
-
-        public ColonyBuildingStack(string name, BuildingType type, int level, int amount = 1)
+        public string Name
         {
-            Name = name;
+            get
+            {
+                return BuildingManager.GetBuildingName(BuildingType);
+            }
+        }
+
+        public ColonyBuildingStack(BuildingType type, int level, int amount = 1)
+        {
             BuildingType = type;
             Level = level;
             Amount = amount;

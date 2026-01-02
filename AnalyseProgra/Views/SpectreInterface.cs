@@ -34,6 +34,23 @@ namespace AnalyseProgra.Views
             return AnsiConsole.Prompt(selector);
         }
 
+        public void DisplayTable(string title, IEnumerable<string> headers, IEnumerable<IEnumerable<string>> rows)
+        {
+            var table = new Table().Title($"[blue]{title}[/]");
+
+            foreach (var header in headers)
+            {
+                table.AddColumn(header);
+            }
+
+            foreach (var row in rows)
+            {
+                table.AddRow(row.ToArray());
+            }
+
+            AnsiConsole.Write(table);
+        }
+
         public void WriteMessage(string message)
         {
             AnsiConsole.MarkupLine($"[cyan]{message}[/]");
@@ -47,6 +64,13 @@ namespace AnalyseProgra.Views
         public void WriteTitle(string title)
         {
             AnsiConsole.Write(new Rule($"[red]{title}[/]"));
+        }
+
+        public void Load(int duration)
+        {
+            AnsiConsole.Status().Start("Construction...", ctx => {
+                ctx.Spinner(Spinner.Known.Clock); Thread.Sleep(duration);
+            });
         }
 
         public void Pause()

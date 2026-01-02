@@ -8,10 +8,10 @@ namespace AnalyseProgra.Models.Buildings
         public int CapaciteAjoutee { get; private set; }
 
         // Si null = Stocke TOUT. Si renseigné = Stocke uniquement cette ressource (Ex: Silo à blé)
-        public ResourceTypeEnums? TypeStockage { get; private set; }
+        public ResourceType? TypeStockage { get; private set; }
 
-        public StorageBuilding(int level, ResourceTypeEnums? typeSpecific = null)
-            : base(typeSpecific == null ? "Entrepôt Général" : $"Silo à {typeSpecific}", BuildingType.StorageBuilding   , level)
+        public StorageBuilding(int level, ResourceType? typeSpecific = null)
+            : base(BuildingType.StorageBuilding, level)
         {
             TypeStockage = typeSpecific;
             CalculateCapacity();
@@ -27,7 +27,7 @@ namespace AnalyseProgra.Models.Buildings
         {
             return new List<ColonyResource>
             {
-                new ColonyResource(ResourceTypeEnums.Fer, Level * 100),
+                new ColonyResource(ResourceType.Fer, Level * 100),
             };
         }
     }

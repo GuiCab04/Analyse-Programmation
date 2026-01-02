@@ -2,17 +2,20 @@
 {
     public interface IUserInterface
     {
-        T Ask<T>(string prompt);
+        public T Ask<T>(string prompt);
 
         public bool Confirm(string prompt);
 
-        T Select<T>(string prompt, IEnumerable<T> choices, Func<T, string>? displaySelector = null);
+        public T Select<T>(string prompt, IEnumerable<T> choices, Func<T, string>? displaySelector = null);
 
-        void WriteMessage(string message);
-        void WriteError(string error);
-        void WriteTitle(string title);
+        public void DisplayTable(string title, IEnumerable<string> headers, IEnumerable<IEnumerable<string>> rows);
 
-        void Pause();
-        void ClearScreen();
+        public void WriteMessage(string message);
+        public void WriteError(string error);
+        public void WriteTitle(string title);
+
+        public void Load(int duration);
+        public void Pause();
+        public void ClearScreen();
     }
 }

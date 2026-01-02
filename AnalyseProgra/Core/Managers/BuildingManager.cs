@@ -1,6 +1,7 @@
 ﻿using AnalyseProgra.Models;
 using AnalyseProgra.Models.Buildings;
 using AnalyseProgra.Models.Enums;
+using System.Reflection.Emit;
 
 namespace AnalyseProgra.Core.Managers
 {
@@ -8,10 +9,51 @@ namespace AnalyseProgra.Core.Managers
     {
         public List<ColonyBuildingStack> BuildingStacks { get; set; }
 
-        public BuildingManager(ICollection<ColonyBuildingStack>? buildingStacks = null)
+        public BuildingManager(ICollection<ColonyBuildingStack>?     buildingStacks = null)
         {
             BuildingStacks = buildingStacks != null ? buildingStacks.ToList() : new List<ColonyBuildingStack>();
             
+        }
+
+        public static string GetBuildingName(BuildingType type)
+        {
+            return type switch
+            {
+                BuildingType.HousingBuilding => "Maison",
+                BuildingType.Farm => "Ferme",
+                BuildingType.IronMine => "Mine de fer",
+                BuildingType.GoldMine => "Mine d'or",
+                BuildingType.StorageBuilding => "Entrepôt",
+                _ => "Bâtiment inconnu"
+            };
+        }
+
+        public static ICollection<ColonyResource> GetBaseCost(BuildingType type)
+        {
+            return type switch
+            {
+                BuildingType.HousingBuilding => new List<ColonyResource>
+                {
+                    new ColonyResource(ResourceType.Fer, 50)
+                },
+                BuildingType.Farm => new List<ColonyResource>
+                {
+                    new ColonyResource(ResourceType.Fer, 30)
+                },
+                BuildingType.IronMine => new List<ColonyResource>
+                {
+                    new ColonyResource(ResourceType.Fer, 100)
+                },
+                BuildingType.GoldMine => new List<ColonyResource>
+                {
+                    new ColonyResource(ResourceType.Fer, 200)
+                },
+                BuildingType.StorageBuilding => new List<ColonyResource>
+                {
+                    new ColonyResource(ResourceType.Fer, 80)
+                },
+                _ => throw new InvalidOperationException("Unknown BuildingType")
+            };
         }
 
         public static ColonyBuildingStack BuildBuildingStack(BuildingType type, int level)
@@ -23,9 +65,9 @@ namespace AnalyseProgra.Core.Managers
                 case BuildingType.HousingBuilding:
                     return new HousingBuilding(level);
                 case BuildingType.IronMine:
-                    return new Mine(level, ResourceTypeEnums.Fer);
+                    return new Mine(level, ResourceType.Fer);
                 case BuildingType.GoldMine:
-                    return new Mine(level, ResourceTypeEnums.Or);
+                    return new Mine(level, ResourceType.Or);
                 case BuildingType.StorageBuilding:
                      return new StorageBuilding(level);
                 default:

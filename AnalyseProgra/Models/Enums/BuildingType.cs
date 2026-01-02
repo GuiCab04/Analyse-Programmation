@@ -6,7 +6,6 @@
         HousingBuilding,
         GoldMine,
         IronMine,
-        PorductionBuilding,
         StorageBuilding,
     }
 }

@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using AnalyseProgra.Models.Enums;
+﻿using AnalyseProgra.Models.Enums;
 
 namespace AnalyseProgra.Models.Buildings
 {
     public class Ferme : ProductionBuilding
     {
         public Ferme(int level)
-            : base("Ferme", BuildingType.Farm, level, ResourceTypeEnums.Patate)
+            : base(BuildingType.Farm, level, ResourceType.Patate)
         {
         }
 
@@ -14,7 +13,7 @@ namespace AnalyseProgra.Models.Buildings
         {
             return new List<ColonyResource>
             {
-                new ColonyResource(ResourceTypeEnums.Fer, Level * 75),
+                new ColonyResource(ResourceType.Fer, Level * 75),
             };
         }
     }

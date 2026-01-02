@@ -1,6 +1,6 @@
 ﻿using AnalyseProgra.UserInterfaces;
 
-namespace AnalyseProgra.Controllers
+namespace AnalyseProgra.Interactions
 {
     public abstract class Interaction
     {
@@ -15,6 +15,6 @@ namespace AnalyseProgra.Controllers
 
         public abstract void Execute(IUserInterface input);
 
-        public override string ToString() => Name;
+        public override string ToString() => $"{Name}: {Description}";
     }
 }

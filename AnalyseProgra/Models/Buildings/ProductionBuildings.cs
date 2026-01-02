@@ -5,10 +5,10 @@ namespace AnalyseProgra.Models.Buildings
     public abstract class ProductionBuilding : ColonyBuildingStack
     {
         public int TauxProduction { get; protected set; }
-        public ResourceTypeEnums ResourceProduite { get; protected set; }
+        public ResourceType ResourceProduite { get; protected set; }
 
-        public ProductionBuilding(string nom, BuildingType type, int level, ResourceTypeEnums resourceProduite)
-            : base(nom, type, level)
+        public ProductionBuilding(BuildingType type, int level, ResourceType resourceProduite)
+            : base(type, level)
         {
             ResourceProduite = resourceProduite;
             CalculateProduction();

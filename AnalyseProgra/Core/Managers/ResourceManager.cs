@@ -5,26 +5,27 @@ using AnalyseProgra.Models.Enums;
 using AnalyseProgra.Models;
 using System.Resources;
 using AnalyseProgra.Core.Managers;
+using System.Xml.Serialization;
 
 public class ResourceManager
 {
     private readonly object _verrou = new object();
 
     public List<ColonyResource> Resources { get; set; }
-    public Dictionary<ResourceTypeEnums, int> MaxCapacities { get; set; }
+    public Dictionary<ResourceType, int> MaxCapacities { get; set; }
 
     public ResourceManager(ICollection<ColonyResource>? colonyResources = null)
     {
         Resources = colonyResources != null ? colonyResources.ToList() : new List<ColonyResource>();
-        MaxCapacities = new Dictionary<ResourceTypeEnums, int>();
+        MaxCapacities = new Dictionary<ResourceType, int>();
 
-        foreach (ResourceTypeEnums type in Enum.GetValues(typeof(ResourceTypeEnums)))
+        foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
         {
             MaxCapacities[type] = 100;
         }
     }
 
-    private ColonyResource GetOrCreateResource(ResourceTypeEnums type)
+    private ColonyResource GetOrCreateResource(ResourceType type)
     {
         string typeName = type.ToString();
 
@@ -37,6 +38,23 @@ public class ResourceManager
         }
 
         return resourceEntity;
+    }
+
+    public static string ResourceListToString(ICollection<ColonyResource> resources)
+    {     
+        string s;
+
+        if (resources.Count == 1)
+        {
+            var resource = resources.First();
+            s = $"{resource.Quantity} {resource.ResourceType}";
+        }
+        else
+        {
+            s = string.Join(", ", resources.Select(r => $"{r.Quantity} {r.ResourceType}"));
+        }
+
+        return s;
     }
 
     public void UpdateMaxStorage(BuildingManager buildingManager)
@@ -70,7 +88,7 @@ public class ResourceManager
         }
     }
 
-    public void Ajouter(ResourceTypeEnums type, int quantite)
+    public void Ajouter(ResourceType type, int quantite)
     {
         lock (_verrou)
         {
@@ -89,7 +107,7 @@ public class ResourceManager
         }
     }
 
-    public void Retirer(ResourceTypeEnums type, int quantite)
+    public void Retirer(ResourceType type, int quantite)
     {
         lock (_verrou)
         {
@@ -107,7 +125,18 @@ public class ResourceManager
         }
     }
 
-    public bool HasEnough(ResourceTypeEnums type, int quantite)
+    public void Retirer(ICollection<ColonyResource> requiredResources)
+    {
+        lock (_verrou)
+        {
+            foreach (var required in requiredResources)
+            {
+                Retirer(required.ResourceType, required.Quantity);
+            }
+        }
+    }
+
+    public bool HasEnough(ResourceType type, int quantite)
     {
         lock (_verrou)
         {
@@ -119,7 +148,22 @@ public class ResourceManager
         }
     }
 
-    public int GetStock(ResourceTypeEnums type)
+    public bool HasEnough(ICollection<ColonyResource> requiredResources)
+    {
+        lock (_verrou)
+        {
+            foreach (var required in requiredResources)
+            {
+                if (HasEnough(required.ResourceType, required.Quantity) == false)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public int GetStock(ResourceType type)
     {
         lock (_verrou)
         {
@@ -128,7 +172,7 @@ public class ResourceManager
         }
     }
 
-    public int GetMax(ResourceTypeEnums type)
+    public int GetMax(ResourceType type)
     {
         lock (_verrou)
         {
