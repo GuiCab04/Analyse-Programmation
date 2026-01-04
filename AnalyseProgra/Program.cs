@@ -1,79 +1,133 @@
-﻿using AnalyseProgra.Models.Enums;
-using AnalyseProgra.Models.Users;
-using AnalyseProgra.Models;
-using AnalyseProgra.Views;
+﻿using AnalyseProgra.DataAccess.Dao;
+using AnalyseProgra.DataAccess.Interface;
 using AnalyseProgra.Interactions;
-using AnalyseProgra.DataAccess.Dao;
+using AnalyseProgra.Models.Enums;
+using AnalyseProgra.Models.Users;
+using AnalyseProgra.Views;
 
 class Program
 {
-    //static Player _player = new Player("Justin", "Just123", new UserDao());
-    static Player _player = new UserDao().GetById(1, true) as Player;
-    static Colony _colony = _player.Colony;
-    static object _verrouBatiments = new object();
     static bool _jeuEnCours = true;
 
     static async Task Main(string[] args)
     {
-        _player.AddActions();   // Ne peut pas être dans le constructeur car Colony n'est pas encore initialisée
-        
-        /*_colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
-        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
-        _colony.Buildings.AddBuilding(BuildingType.IronMine, 1);
-        _colony.Buildings.AddBuilding(BuildingType.IronMine, 2);
-        _colony.Buildings.AddBuilding(BuildingType.IronMine, 2);*/
+        IUserDao userDao = new UserDao();
 
-        PlayerUI ui = new PlayerUI(_player);
-        
-        var tacheMoteur = Task.Run(BoucleDeJeu);
+        SeedUsersIfEmpty(userDao);
+
+        var uiStart = new StartUI();
+        var login = new Login(userDao);
+        login.Execute(uiStart);
+
+        var user = login.SelectedUser!;
+        user.AddActions();
+
+        if (user.Role == UserRole.Admin)
+        {
+            var adminUi = new RolePanelUI(user);
+            while (true)
+            {
+                var action = adminUi.ShowMenu();
+                adminUi.ClearScreen();
+                action.Execute(adminUi);
+            }
+        }
+
+        if (user.Role == UserRole.Moderator)
+        {
+            var choice = uiStart.Select("Mode", new[] { "Jouer", "Panneau modération" });
+
+            if (choice == "Panneau modération")
+            {
+                var modUi = new RolePanelUI(user);
+                while (true)
+                {
+                    var action = modUi.ShowMenu();
+                    modUi.ClearScreen();
+                    action.Execute(modUi);
+                }
+            }
+        }
+
+        var player = user as Player;
+
+        if (player == null)
+        {
+            uiStart.WriteError("Ce compte n'est pas un joueur (Admin ne peut pas jouer).");
+            return;
+        }
+
+        var ui = new PlayerUI(player);
+
+        var tacheMoteur = Task.Run(() => BoucleDeJeu(player));
 
         while (_jeuEnCours)
         {
-            Interaction chosenAction = await ui.ShowDashboard();
-
-            if (_jeuEnCours)
-            {
-                ui.ClearScreen();
-                chosenAction.Execute(ui);
-            }
+            var chosenAction = await ui.ShowDashboard();
+            ui.ClearScreen();
+            chosenAction.Execute(ui);
         }
 
         await tacheMoteur;
     }
 
+    private class StartUI : SpectreInterface { }
 
-    static async Task BoucleDeJeu()
+    private static void SeedUsersIfEmpty(IUserDao userDao)
     {
+        var users = userDao.GetAll().ToList();
+        if (users.Count > 0) return;
+
+        userDao.Create(new User("admin", "admin", userDao)
+        {
+            Role = UserRole.Admin,
+            IsActive = true
+        });
+
+        userDao.Create(new User("moderator", "moderator", userDao)
+        {
+            Role = UserRole.Moderator,
+            IsActive = true
+        });
+
+        userDao.Create(new User("player", "player", userDao)
+        {
+            Role = UserRole.Player,
+            IsActive = true
+        });
+    }
+
+    static async Task BoucleDeJeu(Player player)
+    {
+        var colony = player.Colony;
+
         while (_jeuEnCours)
         {
-            _colony.Population.UpdateMaxPopulation(_colony.Buildings);
-            _colony.Resources.UpdateMaxStorage(_colony.Buildings);
-
-            if (_colony.Buildings != null)
+            if (!player.IsActive)
             {
-                foreach (var stack in _colony.Buildings.BuildingStacks)
-                {
-                    switch (stack.BuildingType)
-                    {
-                        case BuildingType.Farm:
-                            int productionNourriture = (stack.Level * 5) * stack.Amount;
-                            _colony.Resources.Ajouter(ResourceType.Patate, productionNourriture);
-                            break;
-
-                        case BuildingType.IronMine:
-                            int productionFer = (stack.Level * 2) * stack.Amount;
-                            _colony.Resources.Ajouter(ResourceType.Fer, productionFer);
-                            break;
-                    }
-                }
+                await Task.Delay(1000);
+                continue;
             }
 
-            int nb = _colony.Population.GetStock();
+            colony.Population.UpdateMaxPopulation(colony.Buildings);
+            colony.Resources.UpdateMaxStorage(colony.Buildings);
+
+            foreach (var stack in colony.Buildings.BuildingStacks)
+            {
+                if (stack.BuildingType == BuildingType.Farm)
+                    colony.Resources.Ajouter(ResourceType.Patate, (stack.Level * 5) * stack.Amount);
+
+                if (stack.BuildingType == BuildingType.IronMine)
+                    colony.Resources.Ajouter(ResourceType.Fer, (stack.Level * 2) * stack.Amount);
+            }
+
+            int nb = colony.Population.GetStock();
             if (nb > 0)
             {
-                if (_colony.Resources.HasEnough(ResourceType.Patate, nb)) _colony.Resources.Retirer(ResourceType.Patate, nb);
-                else _colony.Population.Retirer(1);
+                if (colony.Resources.HasEnough(ResourceType.Patate, nb)) colony.Resources.Retirer(ResourceType.Patate, nb);
+                else colony.Population.Retirer(1);
             }
+
             await Task.Delay(1000);
         }
     }

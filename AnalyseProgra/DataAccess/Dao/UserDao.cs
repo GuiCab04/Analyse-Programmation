@@ -2,8 +2,10 @@ using AnalyseProgra.Models;
 using AnalyseProgra.Models.Users;
 using AnalyseProgra.Models.Enums;
 using Microsoft.Data.Sqlite;
+using AnalyseProgra.DataAccess.Dao;
 
 using AnalyseProgra.DataAccess.Interface;
+using AnalyseProgra.Models.Buildings;
 
 namespace AnalyseProgra.DataAccess.Dao
 {
@@ -96,6 +98,30 @@ namespace AnalyseProgra.DataAccess.Dao
             var newId = (long)cmd.ExecuteScalar();
             user.Id = (int)newId;
 
+            if (user.Role == UserRole.Player || user.Role == UserRole.Moderator)
+            {
+                IColonyDao colonyDao = new ColonyDao();
+                IColonyBuildingStackDao stackDao = new ColonyBuildingStackDao();
+
+                var colony = colonyDao.GetByOwner(user.Username, includeDetails: false).FirstOrDefault();
+                if (colony == null)
+                {
+                    colony = colonyDao.Create(new Colony(user, $"{user.Username}'s Colony"));
+                }
+
+                colony.Population.CurrentPopulation = 5;
+                colonyDao.Update(colony);
+
+                var existingMine = stackDao.GetOne(colony.Id, BuildingType.IronMine, 1);
+                if (existingMine == null)
+                {
+                    var mine = new Mine(1, ResourceType.Fer);
+                    mine.ColonyId = colony.Id;
+                    mine.Amount = 1;
+
+                    stackDao.Create(mine);
+                }
+            }
             return user;
         }
 
@@ -137,29 +163,25 @@ namespace AnalyseProgra.DataAccess.Dao
 
         private User Map(SqliteDataReader r)
         {
-            var Role = (UserRole)r.GetInt32(3);
-            User user;
-            switch (Role)
+            var role = (UserRole)r.GetInt32(3);
+
+            User user = role switch
             {
-                case UserRole.Admin:
-                    throw new NotImplementedException("Admin user mapping not implemented yet.");
-                    break;
-                case UserRole.Player:
-                    user = new Player(r.GetString(1), r.GetString(2), this);
-                    break;
-                default:
-                    user = new User(r.GetString(1), r.GetString(2), this);
-                    break;
-            }
+                UserRole.Admin => new User(r.GetString(1), r.GetString(2), this),
+                UserRole.Moderator => new Player(r.GetString(1), r.GetString(2), this),
+                UserRole.Player => new Player(r.GetString(1), r.GetString(2), this),
+                _ => new User(r.GetString(1), r.GetString(2), this),
+            };
 
             user.Id = r.GetInt32(0);
             user.Username = r.GetString(1);
             user.PasswordHash = r.GetString(2);
-            user.Role = Role;
+            user.Role = role;
             user.IsActive = r.GetInt32(4) != 0;
 
             return user;
         }
+
 
         private static void LoadRelations(User user)
         {
@@ -171,7 +193,7 @@ namespace AnalyseProgra.DataAccess.Dao
 
         public void SaveWithRelations(User user)
         {
-            var colonyDao = new ColonyDao();
+            IColonyDao colonyDao = new ColonyDao();
 
             if (user.Id == 0)
             {

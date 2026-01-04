@@ -2,6 +2,8 @@ using AnalyseProgra.Models.Enums;
 using AnalyseProgra.Interactions;
 using AnalyseProgra.DataAccess.Dao;
 using AnalyseProgra.DataAccess.Interface;
+using AnalyseProgra.Interactions.Admin;
+using AnalyseProgra.Interactions.Moderator;
 
 namespace AnalyseProgra.Models.Users
 {
@@ -29,6 +31,15 @@ namespace AnalyseProgra.Models.Users
 
         public virtual void AddActions()
         {
+            if (Role == UserRole.Admin)
+            {
+                _avalableActions.Add(new ManageUsersAdmin(_dao));
+            }
+            else if (Role == UserRole.Moderator)
+            {
+                _avalableActions.Add(new AssignModerator(_dao));
+            }
+
             _avalableActions.Add(new Save(this, _dao));
             _avalableActions.Add(new Quit());
         }

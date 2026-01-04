@@ -8,9 +8,9 @@ namespace AnalyseProgra.Models.Enums
 {
     public enum UserRole
     {
-        Player = 0,
+        Admin = 0,
         Moderator = 1,
-        Admin = 2,
+        Player = 2
     }
 }
 
