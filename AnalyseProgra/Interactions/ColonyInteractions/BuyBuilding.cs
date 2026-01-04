@@ -18,10 +18,16 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
         {
             var choices = new List<string>();
 
+            var typesConstructibles = new List<BuildingType>();
+
             foreach (BuildingType buildingType in Enum.GetValues(typeof(BuildingType)))
             {
+                
                 if (buildingType == BuildingType.Mairie)
                     continue;
+
+                typesConstructibles.Add(buildingType);
+
                 var buildingName = BuildingManager.GetBuildingName(buildingType);
                 var requiredResources = BuildingManager.GetBaseCost(buildingType);
                 string buildingCost = ResourceManager.ResourceListToString(requiredResources);
@@ -35,18 +41,22 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
 
             if (choix == "[red]Retour[/]") return;
 
-            BuildingType selectedBuildingType = (BuildingType)choices.IndexOf(choix);
+            int indexChoisi = choices.IndexOf(choix);
+
+            BuildingType selectedBuildingType = typesConstructibles[indexChoisi];
+
             var cost = BuildingManager.GetBaseCost(selectedBuildingType);
-            if (TryBuild(cost, selectedBuildingType,input))
+
+            if (TryBuild(cost, selectedBuildingType, input))
             {
                 input.Load(1000);
-                input.WriteMessage("[green bold]Construction terminée ![/]");
+                input.WriteMessage($"[green bold]Construction de {BuildingManager.GetBuildingName(selectedBuildingType)} terminée ![/]");
             }
 
             input.Pause();
         }
 
-		private bool TryBuild(ICollection<ColonyResource> requiredResources, BuildingType type, IUserInterface input)
+        private bool TryBuild(ICollection<ColonyResource> requiredResources, BuildingType type, IUserInterface input)
 		{
 			var buildingManager = _colony.Buildings;
 			var mairie = buildingManager.BuildingStacks.FirstOrDefault(b => b.BuildingType == BuildingType.Mairie) as Mairie;

@@ -24,7 +24,14 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
             var stacks = _colony.Buildings.BuildingStacks
                 .Where(b => b.BuildingType != BuildingType.Mairie)
                 .ToList();
-            
+
+            if (stacks.Count == 0)
+            {
+                input.WriteError("Aucun bâtiment supprimable (La Mairie ne peut pas être détruite).");
+                input.Pause();
+                return;
+            }
+
             var choices = stacks
                 .Select((b, i) => $"{i} - {BuildingManager.GetBuildingName(b.BuildingType)} (Niv {b.Level}) x{b.Amount}")
                 .ToList();
@@ -42,14 +49,8 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
             }
 
             var stackSelectionne = stacks[index];
-			if (stackSelectionne.BuildingType == BuildingType.Mairie)
-			{
-				input.WriteMessage("[red]Impossible : la Mairie est un bâtiment unique et ne peut pas être supprimée.[/]");
-				input.Pause();
-				return;
-			}
 
-			if (!input.Confirm($"Confirmer la suppression d'une unité de {BuildingManager.GetBuildingName(stackSelectionne.BuildingType)} (Niv {stackSelectionne.Level}) ?"))
+            if (!input.Confirm($"Confirmer la suppression d'une unité de {BuildingManager.GetBuildingName(stackSelectionne.BuildingType)} (Niv {stackSelectionne.Level}) ?"))
             {
                 return;
             }
