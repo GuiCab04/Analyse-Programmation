@@ -77,7 +77,7 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
 
 				if (currentTotalBuildings + 1 > allowed)
 				{
-					input.WriteMessage($"[red]Impossible : la Mairie limite le nombre total de bâtiments à {allowed}. Améliorer la pour avoir la possibilité de construire plus de bâtiment.[/]");
+					input.WriteMessage($"[red]Impossible : la Mairie limite le nombre total de bâtiments. Améliorer la pour avoir la possibilité de construire plus de bâtiment.[/]");
 					return false;
 				}
 			}
