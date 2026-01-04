@@ -2,11 +2,18 @@
 {
     public enum BuildingType
     {
-        Farm,
-        HousingBuilding,
-        GoldMine,
-        IronMine,
-        StorageBuilding,
-    }
+		Mairie,
+		HousingBuilding,
+		Farm,
+        SaliFarm,
+        SoluroMine,
+        SoliMine,
+        SoluMine,
+		StorageSaliBuilding,
+		StorageSolurialBuilding,
+		StorageSoluroBuilding,
+		StorageSoluBuilding,
+		StorageSoliBuilding,
+	}
 }
 

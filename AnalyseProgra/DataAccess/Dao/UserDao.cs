@@ -112,10 +112,10 @@ namespace AnalyseProgra.DataAccess.Dao
                 colony.Population.CurrentPopulation = 5;
                 colonyDao.Update(colony);
 
-                var existingMine = stackDao.GetOne(colony.Id, BuildingType.IronMine, 1);
+                var existingMine = stackDao.GetOne(colony.Id, BuildingType.SoluroMine, 1);
                 if (existingMine == null)
                 {
-                    var mine = new Mine(1, ResourceType.Fer);
+                    var mine = new Mine(1, ResourceType.Soluro);
                     mine.ColonyId = colony.Id;
                     mine.Amount = 1;
 

@@ -5,16 +5,40 @@ namespace AnalyseProgra.Models.Buildings
     public class Ferme : ProductionBuilding
     {
         public Ferme(int level)
-            : base(BuildingType.Farm, level, ResourceType.Patate)
+            : base(BuildingType.Farm, level, ResourceType.Solurial)
         {
         }
 
         public override ICollection<ColonyResource>? GetUpgradeCost()
         {
-            return new List<ColonyResource>
-            {
-                new ColonyResource(ResourceType.Fer, Level * 75),
-            };
-        }
-    }
+			switch (Level)
+			{
+				case 2:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 35),
+						new ColonyResource(ResourceType.Soluro, 35),
+						new ColonyResource(ResourceType.Solu, 10),
+					};
+				case 3:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 100),
+						new ColonyResource(ResourceType.Soluro, 100),
+						new ColonyResource(ResourceType.Solu, 60),
+						new ColonyResource(ResourceType.Soli, 10),
+					};
+				case 4:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 300),
+						new ColonyResource(ResourceType.Soluro, 300),
+						new ColonyResource(ResourceType.Solu, 150),
+						new ColonyResource(ResourceType.Soli, 75),
+					};
+				default:
+					return new List<ColonyResource>();
+			}
+		}
+	}
 }

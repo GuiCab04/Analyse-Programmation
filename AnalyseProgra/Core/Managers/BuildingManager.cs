@@ -19,12 +19,19 @@ namespace AnalyseProgra.Core.Managers
         {
             return type switch
             {
-                BuildingType.HousingBuilding => "Maison",
-                BuildingType.Farm => "Ferme",
-                BuildingType.IronMine => "Mine de fer",
-                BuildingType.GoldMine => "Mine d'or",
-                BuildingType.StorageBuilding => "Entrepôt",
-                _ => "Bâtiment inconnu"
+				BuildingType.Mairie => "Mairie",
+				BuildingType.HousingBuilding => "Maison",
+				BuildingType.Farm => "Ferme à Solurial",
+				BuildingType.SaliFarm => "Ferme de Sali",
+				BuildingType.SoluroMine => "Carrière de Soluro",
+				BuildingType.SoliMine => "Mine de Soli",
+				BuildingType.SoluMine => "Mine de Solu",
+				BuildingType.StorageSaliBuilding => "Entrepôt de Sali",
+				BuildingType.StorageSolurialBuilding => "Entrepôt de Solurial",
+				BuildingType.StorageSoluroBuilding => "Entrepôt de Soluro",
+				BuildingType.StorageSoluBuilding => "Entrepôt de Solu",
+				BuildingType.StorageSoliBuilding => "Entrepôt de Soli",
+				_ => "Bâtiment inconnu"
             };
         }
 
@@ -32,50 +39,106 @@ namespace AnalyseProgra.Core.Managers
         {
             return type switch
             {
-                BuildingType.HousingBuilding => new List<ColonyResource>
-                {
-                    new ColonyResource(ResourceType.Fer, 50)
-                },
-                BuildingType.Farm => new List<ColonyResource>
-                {
-                    new ColonyResource(ResourceType.Fer, 30)
-                },
-                BuildingType.IronMine => new List<ColonyResource>
-                {
-                    new ColonyResource(ResourceType.Fer, 100)
-                },
-                BuildingType.GoldMine => new List<ColonyResource>
-                {
-                    new ColonyResource(ResourceType.Fer, 200)
-                },
-                BuildingType.StorageBuilding => new List<ColonyResource>
-                {
-                    new ColonyResource(ResourceType.Fer, 80)
-                },
-                _ => throw new InvalidOperationException("Unknown BuildingType")
+				BuildingType.Mairie => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Soluro, 10),
+					new ColonyResource(ResourceType.Sali, 10)
+				},
+				BuildingType.HousingBuilding => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Soluro, 15),
+					new ColonyResource(ResourceType.Sali, 15)
+				},
+				BuildingType.Farm => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Soluro, 5),
+					new ColonyResource(ResourceType.Sali, 5)
+				},
+				BuildingType.SoluroMine => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Sali, 5)
+				},
+				BuildingType.SaliFarm => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Soluro, 5)
+				},
+				BuildingType.SoliMine => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Soluro, 80),
+					new ColonyResource(ResourceType.Sali, 80),
+					new ColonyResource(ResourceType.Solu, 30)
+				},
+				BuildingType.SoluMine => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Sali, 25),
+					new ColonyResource(ResourceType.Soluro, 25)
+				},
+				BuildingType.StorageSaliBuilding => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Sali, 20),
+					new ColonyResource(ResourceType.Soluro, 20)
+				},
+				BuildingType.StorageSolurialBuilding => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Sali, 20),
+					new ColonyResource(ResourceType.Soluro, 20),
+					new ColonyResource(ResourceType.Solurial, 20)
+				},
+				BuildingType.StorageSoluroBuilding => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Sali, 20),
+					new ColonyResource(ResourceType.Soluro, 20)
+				},
+				BuildingType.StorageSoluBuilding => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Sali, 120),
+					new ColonyResource(ResourceType.Soluro, 120),
+					new ColonyResource(ResourceType.Solu, 60)
+				},
+				BuildingType.StorageSoliBuilding => new List<ColonyResource>
+				{
+					new ColonyResource(ResourceType.Sali, 350),
+					new ColonyResource(ResourceType.Soluro, 350),
+					new ColonyResource(ResourceType.Soli, 20)
+				},
+				_ => throw new InvalidOperationException("Unknown BuildingType")
             };
         }
 
-        public static ColonyBuildingStack BuildBuildingStack(BuildingType type, int level)
-        {
-            switch (type)
-            {
-                case BuildingType.Farm:
-                    return new Ferme(level);
-                case BuildingType.HousingBuilding:
-                    return new HousingBuilding(level);
-                case BuildingType.IronMine:
-                    return new Mine(level, ResourceType.Fer);
-                case BuildingType.GoldMine:
-                    return new Mine(level, ResourceType.Or);
-                case BuildingType.StorageBuilding:
-                     return new StorageBuilding(level);
-                default:
-                    throw new InvalidOperationException("Unknown BuildingType");
-            }
-        }
+		public static ColonyBuildingStack BuildBuildingStack(BuildingType type, int level)
+		{
+			switch (type)
+			{
+				case BuildingType.Farm:
+					return new Ferme(level);
+				case BuildingType.HousingBuilding:
+					return new HousingBuilding(level);
+				case BuildingType.SoluroMine:
+					return new Mine(level, ResourceType.Soluro);
+				case BuildingType.SaliFarm:
+					return new Mine(level, ResourceType.Sali);
+				case BuildingType.SoliMine:
+					return new Mine(level, ResourceType.Soli);
+				case BuildingType.SoluMine:
+					return new Mine(level, ResourceType.Solu);
+				case BuildingType.StorageSaliBuilding:
+					return new StorageBuilding(level, ResourceType.Sali);
+				case BuildingType.StorageSoluroBuilding:
+					return new StorageBuilding(level, ResourceType.Soluro);
+				case BuildingType.StorageSolurialBuilding:
+					return new StorageBuilding(level, ResourceType.Solurial);
+				case BuildingType.StorageSoluBuilding:
+					return new StorageBuilding(level, ResourceType.Solu);
+				case BuildingType.StorageSoliBuilding:
+					return new StorageBuilding(level, ResourceType.Soli);
+				//case BuildingType.Mairie:
+				//	return new GenericBuilding(BuildingType.Mairie, level);
+				default:
+					throw new InvalidOperationException("Unknown BuildingType");
+			}
+		}
 
-        public void AddBuilding(BuildingType type, int level)
+		public void AddBuilding(BuildingType type, int level)
         {
             if (!BuildingStacks.Any(b => b.BuildingType == type && b.Level == level))
             {

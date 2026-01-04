@@ -1,6 +1,7 @@
 ﻿using AnalyseProgra.DataAccess.Dao;
 using AnalyseProgra.DataAccess.Interface;
 using AnalyseProgra.Interactions;
+using AnalyseProgra.Models.Buildings;
 using AnalyseProgra.Models.Enums;
 using AnalyseProgra.Models.Users;
 using AnalyseProgra.Views;
@@ -85,38 +86,46 @@ class Program
         });
     }
 
-    static async Task BoucleDeJeu(Player player)
-    {
-        var colony = player.Colony;
+	static async Task BoucleDeJeu(Player player)
+	{
+		var colony = player.Colony;
 
-        while (_jeuEnCours)
-        {
-            if (!player.IsActive)
-            {
-                await Task.Delay(1000);
-                continue;
-            }
+		while (_jeuEnCours)
+		{
+			if (!player.IsActive)
+			{
+				await Task.Delay(1000);
+				continue;
+			}
 
-            colony.Population.UpdateMaxPopulation(colony.Buildings);
-            colony.Resources.UpdateMaxStorage(colony.Buildings);
+			// Mettre à jour plafonds avant production
+			colony.Population.UpdateMaxPopulation(colony.Buildings);
+			colony.Resources.UpdateMaxStorage(colony.Buildings);
 
-            foreach (var stack in colony.Buildings.BuildingStacks)
-            {
-                if (stack.BuildingType == BuildingType.Farm)
-                    colony.Resources.Ajouter(ResourceType.Patate, (stack.Level * 5) * stack.Amount);
+			// Production : pour tout building de production, utiliser son taux calculé
+			foreach (var stack in colony.Buildings.BuildingStacks)
+			{
+				if (stack is ProductionBuilding pb)
+				{
+					int totalProduction = pb.TauxProduction * stack.Amount;
+					if (totalProduction > 0)
+					{
+						colony.Resources.Ajouter(pb.ResourceProduite, totalProduction);
+					}
+				}
+			}
 
-                if (stack.BuildingType == BuildingType.IronMine)
-                    colony.Resources.Ajouter(ResourceType.Fer, (stack.Level * 2) * stack.Amount);
-            }
+			// Consommation de la population (nourriture)
+			int nb = colony.Population.GetStock();
+			if (nb > 0)
+			{
+				if (colony.Resources.HasEnough(ResourceType.Solurial, nb))
+					colony.Resources.Retirer(ResourceType.Solurial, nb);
+				else
+					colony.Population.Retirer(1);
+			}
 
-            int nb = colony.Population.GetStock();
-            if (nb > 0)
-            {
-                if (colony.Resources.HasEnough(ResourceType.Patate, nb)) colony.Resources.Retirer(ResourceType.Patate, nb);
-                else colony.Population.Retirer(1);
-            }
-
-            await Task.Delay(1000);
-        }
-    }
+			await Task.Delay(1000);
+		}
+	}
 }

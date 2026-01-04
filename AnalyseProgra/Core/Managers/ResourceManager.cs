@@ -57,38 +57,55 @@ public class ResourceManager
         return s;
     }
 
-    public void UpdateMaxStorage(BuildingManager buildingManager)
-    {
-        lock (_verrou)
-        {
-            foreach (var type in MaxCapacities.Keys.ToList())
-            {
-                MaxCapacities[type] = 100;
-            }
+	public void UpdateMaxStorage(BuildingManager buildingManager)
+	{
+		lock (_verrou)
+		{
+			// 1. On remet tout le monde au minimum (base)
+			foreach (var type in MaxCapacities.Keys.ToList())
+			{
+				MaxCapacities[type] = 100;
+			}
 
-            if (buildingManager.BuildingStacks != null)
-            {
-                foreach (var stack in buildingManager.BuildingStacks)
-                {
-                    switch (stack.BuildingType)
-                    {
-                        case BuildingType.StorageBuilding:
-                            int capaciteWarehouse = stack.Level * 100 * stack.Amount;
+			if (buildingManager.BuildingStacks != null)
+			{
+				foreach (var stack in buildingManager.BuildingStacks)
+				{
+					int capacite = stack.Level * 100 * stack.Amount;
 
-                            foreach (var type in MaxCapacities.Keys.ToList())
-                            {
-                                MaxCapacities[type] += capaciteWarehouse;
-                            }
-                            break;
+					switch (stack.BuildingType)
+					{
+						case BuildingType.StorageSaliBuilding:
+							if (MaxCapacities.ContainsKey(ResourceType.Sali))
+								MaxCapacities[ResourceType.Sali] += capacite;
+							break;
 
-                            // Possibilité d'ajouter d'autres bâtiments influençant la capacité de stockage
-                    }
-                }
-            }
-        }
-    }
+						case BuildingType.StorageSolurialBuilding:
+							if (MaxCapacities.ContainsKey(ResourceType.Solurial))
+								MaxCapacities[ResourceType.Solurial] += capacite;
+							break;
 
-    public void Ajouter(ResourceType type, int quantite)
+						case BuildingType.StorageSoluroBuilding:
+							if (MaxCapacities.ContainsKey(ResourceType.Soluro))
+								MaxCapacities[ResourceType.Soluro] += capacite;
+							break;
+
+						case BuildingType.StorageSoluBuilding:
+							if (MaxCapacities.ContainsKey(ResourceType.Solu))
+								MaxCapacities[ResourceType.Solu] += capacite;
+							break;
+
+						case BuildingType.StorageSoliBuilding:
+							if (MaxCapacities.ContainsKey(ResourceType.Soli))
+								MaxCapacities[ResourceType.Soli] += capacite;
+							break;
+					}
+				}
+			}
+		}
+	}
+
+	public void Ajouter(ResourceType type, int quantite)
     {
         lock (_verrou)
         {

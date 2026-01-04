@@ -9,10 +9,11 @@ namespace AnalyseProgra.Models.Enums
     
     public enum ResourceType
     {
-        Fer,
-        Or,
-        Ble,
-        Patate
+        Soluro,
+        Sali,
+        Solurial,
+        Soli,
+        Solu
     }
 
 }

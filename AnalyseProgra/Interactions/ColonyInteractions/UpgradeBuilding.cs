@@ -40,7 +40,7 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
             input.WriteMessage($"Coût pour améliorer ce building au niveau {stackSelectionne.Level + 1}:");
             input.WriteMessage($"- {costString}");
 
-            if (input.Confirm($"Confirmer l'amélioration pour {costString} Fer ?"))
+            if (input.Confirm($"Confirmer l'amélioration pour {costString} Soluro ?"))
             {
                 if (_colony.Resources.HasEnough(cost))
                 {

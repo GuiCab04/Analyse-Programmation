@@ -28,8 +28,8 @@ namespace AnalyseProgra.Models.Buildings
         {
             return new List<ColonyResource>
             {
-                new ColonyResource(ResourceType.Fer, Level * 25),
-                new ColonyResource(ResourceType.Patate, Level * 50)
+                new ColonyResource(ResourceType.Soluro, Level * 25),
+                new ColonyResource(ResourceType.Solurial, Level * 50)
             };
         }
     }

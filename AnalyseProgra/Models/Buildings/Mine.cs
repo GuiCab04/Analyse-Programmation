@@ -6,7 +6,7 @@ namespace AnalyseProgra.Models.Buildings
     public class Mine : ProductionBuilding
     {
         public Mine(int level, ResourceType typeMinerai)
-            : base(typeMinerai == ResourceType.Fer ? BuildingType.IronMine : BuildingType.GoldMine,
+            : base(typeMinerai == ResourceType.Soluro ? BuildingType.SoluroMine : BuildingType.SaliFarm,
                   level,
                   typeMinerai)
         {
@@ -14,22 +14,157 @@ namespace AnalyseProgra.Models.Buildings
 
         public override ICollection<ColonyResource>? GetUpgradeCost()
         {
-            if (ResourceProduite == ResourceType.Or)
-            {
-                // Une mine d'Or coûte cher et demande du Fer !
-                return new List<ColonyResource>
+            switch (ResourceProduite)  
                 {
-                    new ColonyResource(ResourceType.Fer, Level * 200),
-                };
-            }
-            else
-            {
-                // Une mine de Fer coûte un peu de Fer
-                return new List<ColonyResource>
-                {
-                    new ColonyResource(ResourceType.Fer, Level * 50),
-                };
-            }
+                case ResourceType.Soluro:
+                    return GetSoluroMineCost();
+                case ResourceType.Sali:
+                    return GetSaliMineCost();
+				case ResourceType.Solu:
+					return GetSoluMineCost();
+				case ResourceType.Soli:
+					return GetSoliMineCost();
+				default:
+                    return null;
+			}
         }
-    }
+
+        private List<ColonyResource> GetSaliMineCost()
+        {
+            switch (Level)
+            {
+                case 2:
+                    return new List<ColonyResource>
+                    {
+                        new ColonyResource(ResourceType.Soluro, 15),
+                        new ColonyResource(ResourceType.Sali, 15),
+					};
+                case 3:
+                    return new List<ColonyResource>
+                    {
+                        new ColonyResource(ResourceType.Sali, 50),
+                        new ColonyResource(ResourceType.Soluro, 50),
+                        new ColonyResource(ResourceType.Solu, 15),
+					};
+                case 4:
+                    return new List<ColonyResource>
+                    {
+                        new ColonyResource(ResourceType.Sali, 150),
+                        new ColonyResource(ResourceType.Soluro, 150),
+                        new ColonyResource(ResourceType.Solu, 80),
+                        new ColonyResource(ResourceType.Soli, 15),
+					};
+                case 5:
+                    return new List<ColonyResource>
+                    {
+                        new ColonyResource(ResourceType.Sali, 400),
+                        new ColonyResource(ResourceType.Soluro, 400),
+                        new ColonyResource(ResourceType.Solu, 300),
+                        new ColonyResource(ResourceType.Soli, 150),
+					};
+                default:
+                    return new List<ColonyResource>();
+			}
+		}
+		private List<ColonyResource> GetSoluroMineCost()
+		{
+			switch (Level)
+			{
+				case 2:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Soluro, 15),
+						new ColonyResource(ResourceType.Sali, 15),
+					};
+				case 3:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 50),
+						new ColonyResource(ResourceType.Soluro, 50),
+						new ColonyResource(ResourceType.Solu, 15),
+					};
+				case 4:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 150),
+						new ColonyResource(ResourceType.Soluro, 150),
+						new ColonyResource(ResourceType.Solu, 80),
+						new ColonyResource(ResourceType.Soli, 15),
+					};
+				case 5:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 400),
+						new ColonyResource(ResourceType.Soluro, 400),
+						new ColonyResource(ResourceType.Solu, 300),
+						new ColonyResource(ResourceType.Soli, 150),
+					};
+				default:
+					return new List<ColonyResource>();
+			}
+		}
+		private List<ColonyResource> GetSoluMineCost()
+		{
+			switch (Level)
+			{
+				case 2:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 40),
+						new ColonyResource(ResourceType.Soluro, 40),
+						new ColonyResource(ResourceType.Solu, 10),
+					};
+				case 3:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 100),
+						new ColonyResource(ResourceType.Soluro, 100),
+						new ColonyResource(ResourceType.Solu, 60),
+						new ColonyResource(ResourceType.Soli, 10),
+					};
+				case 4:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 300),
+						new ColonyResource(ResourceType.Soluro, 300),
+						new ColonyResource(ResourceType.Solu, 120),
+						new ColonyResource(ResourceType.Soli, 60),
+					};
+				default:
+					return new List<ColonyResource>();
+			}
+		}
+		private List<ColonyResource> GetSoliMineCost()
+		{
+			switch (Level)
+			{
+				case 2:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 110),
+						new ColonyResource(ResourceType.Soluro, 110),
+						new ColonyResource(ResourceType.Solu, 50),
+						new ColonyResource(ResourceType.Soli, 10),
+					};
+				case 3:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 250),
+						new ColonyResource(ResourceType.Soluro, 250),
+						new ColonyResource(ResourceType.Solu, 100),
+						new ColonyResource(ResourceType.Soli, 40),
+					};
+				case 4:
+					return new List<ColonyResource>
+					{
+						new ColonyResource(ResourceType.Sali, 450),
+						new ColonyResource(ResourceType.Soluro, 450),
+						new ColonyResource(ResourceType.Solu, 150),
+						new ColonyResource(ResourceType.Soli, 75),
+					};
+				default:
+					return new List<ColonyResource>();
+			}
+		}
+	}
 }

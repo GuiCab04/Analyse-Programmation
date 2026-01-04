@@ -36,8 +36,6 @@ namespace AnalyseProgra.Interactions
                 var selected = ui.Select("Choisir un utilisateur", users,
                     u => $"{u.Id} · {u.Username} · {u.Role} · Actif={u.IsActive}");
 
-                string password = ui.AskPassword("Password");
-
                 var loaded = _userDao.GetById(selected.Id, includeDetails: true);
 
                 if (loaded == null)
