@@ -3,6 +3,7 @@
     public interface IUserInterface
     {
         public T Ask<T>(string prompt);
+        public string AskPassword(string prompt);
 
         public bool Confirm(string prompt);
 

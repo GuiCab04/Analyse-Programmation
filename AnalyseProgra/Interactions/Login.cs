@@ -36,34 +36,59 @@ namespace AnalyseProgra.Interactions
                 var selected = ui.Select("Choisir un utilisateur", users,
                     u => $"{u.Id} · {u.Username} · {u.Role} · Actif={u.IsActive}");
 
-                SelectedUser = _userDao.GetById(selected.Id, includeDetails: true);
+                string password = ui.AskPassword("Password");
 
-                if (SelectedUser == null)
+                var loaded = _userDao.GetById(selected.Id, includeDetails: true);
+
+                if (loaded == null)
                 {
                     ui.WriteError("Erreur : impossible de charger l'utilisateur sélectionné.");
+                    return;
                 }
 
+                for (int i = 0; i < 3; i++)
+                {
+                    string password_user = ui.AskPassword("Password");
+
+                    if (loaded.PasswordHash == password_user)
+                    {
+                        SelectedUser = loaded;
+                        return;
+                    }
+
+                    ui.WriteError("Mot de passe incorrect.");
+                }
+
+                SelectedUser = null;
                 return;
+
             }
+
 
             SelectedUser = CreateFlow(ui);
         }
 
         private User CreateFlow(IUserInterface ui)
         {
-            string username = ui.Ask<string>("Username");
-            string password = ui.Ask<string>("Password");
+            string username = ui.Ask<string>("Username").Trim();
+            string password = ui.AskPassword("Password");
 
-            var role = ui.Select("Rôle", new[] { UserRole.Player, UserRole.Moderator, UserRole.Admin }, r => r.ToString());
-
-            // Simple: on crée un User “de base” en DB
-            var user = new User(username, password, _userDao)
+            var existing = _userDao.GetByUsername(username, includeDetails: true);
+            if (existing != null)
             {
-                Role = role,
+                ui.WriteError("Ce username existe déjà.");
+                return existing;
+            }
+
+            var player = new Player(username, password, _userDao)
+            {
+                Role = UserRole.Player,
                 IsActive = true
             };
 
-            return _userDao.Create(user);
+            return _userDao.Create(player);
         }
+
+
     }
 }

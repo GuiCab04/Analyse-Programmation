@@ -73,6 +73,14 @@ namespace AnalyseProgra.Views
             });
         }
 
+        public string AskPassword(string prompt)
+        {
+            return AnsiConsole.Prompt(
+                new TextPrompt<string>($"[bold yellow]{prompt}[/]:")
+                    .Secret()
+            );
+        }
+
         public void Pause()
         {
             AnsiConsole.MarkupLine("[grey]Appuyez sur une touche...[/]"); Console.ReadKey(true);

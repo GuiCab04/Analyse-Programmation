@@ -83,18 +83,6 @@ class Program
             Role = UserRole.Admin,
             IsActive = true
         });
-
-        userDao.Create(new User("moderator", "moderator", userDao)
-        {
-            Role = UserRole.Moderator,
-            IsActive = true
-        });
-
-        userDao.Create(new User("player", "player", userDao)
-        {
-            Role = UserRole.Player,
-            IsActive = true
-        });
     }
 
     static async Task BoucleDeJeu(Player player)
