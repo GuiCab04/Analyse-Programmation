@@ -13,14 +13,14 @@ namespace AnalyseProgra.Models.Buildings
         {
 			switch (Level)
 			{
-				case 2:
+				case 1:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 35),
 						new ColonyResource(ResourceType.Soluro, 35),
 						new ColonyResource(ResourceType.Solu, 10),
 					};
-				case 3:
+				case 2:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 100),
@@ -28,7 +28,7 @@ namespace AnalyseProgra.Models.Buildings
 						new ColonyResource(ResourceType.Solu, 60),
 						new ColonyResource(ResourceType.Soli, 10),
 					};
-				case 4:
+				case 3:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 300),

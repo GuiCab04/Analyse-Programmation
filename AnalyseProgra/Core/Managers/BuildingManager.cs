@@ -39,7 +39,6 @@ namespace AnalyseProgra.Core.Managers
         {
             return type switch
             {
-				BuildingType.Mairie => new List<ColonyResource>(),
 				BuildingType.HousingBuilding => new List<ColonyResource>
 				{
 					new ColonyResource(ResourceType.Soluro, 15),
@@ -169,19 +168,29 @@ namespace AnalyseProgra.Core.Managers
             }
         }
 
-        public void UpgradeBuilding(BuildingType type, int currentLevel)
-        {
-            try
-            {
-                RemoveBuilding(type, currentLevel);
-            }
-            catch (InvalidOperationException ex)
-            {
-                throw new InvalidOperationException("Upgrade failed: No building of the specified type and level to upgrade.");
-            }
+		public void UpgradeBuilding(BuildingType type, int currentLevel)
+		{
+			int targetLevel = currentLevel + 1;
 
-            AddBuilding(type, currentLevel + 1);
+			var mairieStack = BuildingStacks.FirstOrDefault(b => b.BuildingType == BuildingType.Mairie);
+			if (mairieStack != null)
+			{
+				int mairieLevel = mairieStack.Level;
+				if (targetLevel > mairieLevel)
+				{
+					throw new InvalidOperationException($"Impossible d'améliorer : améliorez d'abord la Mairie (niv {mairieLevel}) pour débloquer ce niveau.");
+				}
+			}
+			try
+			{
+				RemoveBuilding(type, currentLevel);
+			}
+			catch (InvalidOperationException ex)
+			{
+				throw new InvalidOperationException("Upgrade failed: No building of the specified type and level to upgrade.");
+			}
 
-        }
-    }
+			AddBuilding(type, targetLevel);
+		}
+	}
 }

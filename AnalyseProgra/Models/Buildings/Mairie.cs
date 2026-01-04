@@ -13,20 +13,20 @@ namespace AnalyseProgra.Models.Buildings
 		public Mairie(int level)
 			: base(BuildingType.Mairie, level)
 		{
-			Amount = 1; // Unique
+			Amount = 1;
 		}
 
 		public override ICollection<ColonyResource>? GetUpgradeCost()
 		{
 			switch (Level)
 			{
-				case 2:
+				case 1:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Soluro, 10),
 						new ColonyResource(ResourceType.Sali, 10),
 					};
-				case 3:
+				case 2:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 50),
@@ -35,7 +35,7 @@ namespace AnalyseProgra.Models.Buildings
 						new ColonyResource(ResourceType.Solurial, 40),
 
 					};
-				case 4:
+				case 3:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 150),
@@ -45,7 +45,7 @@ namespace AnalyseProgra.Models.Buildings
 						new ColonyResource(ResourceType.Soli, 20),
 
 					};
-				case 5:
+				case 4:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 650),
@@ -59,10 +59,6 @@ namespace AnalyseProgra.Models.Buildings
 			}
 		}
 
-		/// <summary>
-		/// Nombre total de bâtiments autorisés (hors mairie elle-même) selon le niveau de la mairie.
-		/// Valeurs par défaut ; modifiables si vous voulez un autre équilibrage.
-		/// </summary>
 		public int GetMaxBuildingsAllowed()
 		{
 			return Level switch
@@ -73,24 +69,6 @@ namespace AnalyseProgra.Models.Buildings
 				4 => 40,
 				5 => 80,
 				_ => 5
-			};
-		}
-
-		/// <summary>
-		/// Niveau maximum autorisé pour un type de bâtiment donné selon le niveau de la mairie.
-		/// Valeurs par défaut : augmente le plafond général ; si besoin on peut spécialiser par type.
-		/// </summary>
-		public int GetMaxLevelFor(BuildingType buildingType)
-		{
-			// Par défaut, même plafond pour tous les types. Ajustez si besoin.
-			return Level switch
-			{
-				1 => 1,
-				2 => 3,
-				3 => 5,
-				4 => 8,
-				5 => 12,
-				_ => 1
 			};
 		}
 	}

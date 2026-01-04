@@ -40,20 +40,20 @@ namespace AnalyseProgra.Models.Buildings
         {
             switch (Level)
             {
-                case 2:
+                case 1:
                     return new List<ColonyResource>
                     {
                         new ColonyResource(ResourceType.Soluro, 15),
                         new ColonyResource(ResourceType.Sali, 15),
 					};
-                case 3:
+                case 2:
                     return new List<ColonyResource>
                     {
                         new ColonyResource(ResourceType.Sali, 50),
                         new ColonyResource(ResourceType.Soluro, 50),
                         new ColonyResource(ResourceType.Solu, 15),
 					};
-                case 4:
+                case 3:
                     return new List<ColonyResource>
                     {
                         new ColonyResource(ResourceType.Sali, 150),
@@ -61,7 +61,7 @@ namespace AnalyseProgra.Models.Buildings
                         new ColonyResource(ResourceType.Solu, 80),
                         new ColonyResource(ResourceType.Soli, 15),
 					};
-                case 5:
+                case 4:
                     return new List<ColonyResource>
                     {
                         new ColonyResource(ResourceType.Sali, 400),
@@ -77,20 +77,20 @@ namespace AnalyseProgra.Models.Buildings
 		{
 			switch (Level)
 			{
-				case 2:
+				case 1:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Soluro, 15),
 						new ColonyResource(ResourceType.Sali, 15),
 					};
-				case 3:
+				case 2:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 50),
 						new ColonyResource(ResourceType.Soluro, 50),
 						new ColonyResource(ResourceType.Solu, 15),
 					};
-				case 4:
+				case 3:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 150),
@@ -98,7 +98,7 @@ namespace AnalyseProgra.Models.Buildings
 						new ColonyResource(ResourceType.Solu, 80),
 						new ColonyResource(ResourceType.Soli, 15),
 					};
-				case 5:
+				case 4:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 400),
@@ -114,14 +114,14 @@ namespace AnalyseProgra.Models.Buildings
 		{
 			switch (Level)
 			{
-				case 2:
+				case 1:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 40),
 						new ColonyResource(ResourceType.Soluro, 40),
 						new ColonyResource(ResourceType.Solu, 10),
 					};
-				case 3:
+				case 2:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 100),
@@ -129,7 +129,7 @@ namespace AnalyseProgra.Models.Buildings
 						new ColonyResource(ResourceType.Solu, 60),
 						new ColonyResource(ResourceType.Soli, 10),
 					};
-				case 4:
+				case 3:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 300),
@@ -145,7 +145,7 @@ namespace AnalyseProgra.Models.Buildings
 		{
 			switch (Level)
 			{
-				case 2:
+				case 1:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 110),
@@ -153,7 +153,7 @@ namespace AnalyseProgra.Models.Buildings
 						new ColonyResource(ResourceType.Solu, 50),
 						new ColonyResource(ResourceType.Soli, 10),
 					};
-				case 3:
+				case 2:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 250),
@@ -161,7 +161,7 @@ namespace AnalyseProgra.Models.Buildings
 						new ColonyResource(ResourceType.Solu, 100),
 						new ColonyResource(ResourceType.Soli, 40),
 					};
-				case 4:
+				case 3:
 					return new List<ColonyResource>
 					{
 						new ColonyResource(ResourceType.Sali, 450),

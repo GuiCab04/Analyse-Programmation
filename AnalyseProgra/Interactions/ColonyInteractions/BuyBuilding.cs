@@ -72,13 +72,6 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
 
 			if (mairie != null && type != BuildingType.Mairie)
 			{
-				int maxLevelAllowed = mairie.GetMaxLevelFor(type);
-				if (1 > maxLevelAllowed)
-				{
-					input.WriteMessage($"[red]Impossible : niveau maximal autorisé pour ce bâtiment est {maxLevelAllowed} (Mairie niv {mairie.Level}).[/]");
-					return false;
-				}
-
 				int currentTotalBuildings = buildingManager.BuildingStacks.Where(b => b.BuildingType != BuildingType.Mairie).Sum(b => b.Amount);
 				int allowed = mairie.GetMaxBuildingsAllowed();
 

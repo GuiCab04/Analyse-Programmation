@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using AnalyseProgra.Core.Managers;
 using AnalyseProgra.Models;
 using AnalyseProgra.Models.Enums;
+using AnalyseProgra.Models.Buildings;
+using System.Linq;
 
 public class PopulationManager
 {
@@ -25,13 +27,17 @@ public class PopulationManager
 
             var houseStacks = buildingManager.BuildingStacks.Where(b => b.BuildingType == BuildingType.HousingBuilding);
 
-            if (houseStacks != null)
+            foreach (var stack in houseStacks)
             {
-                foreach (var stack in houseStacks)
+                if (stack is HousingBuilding hb)
+                {
+                    totalCapacite += hb.CapaciteHabitants * stack.Amount;
+                }
+                else
                 {
                     totalCapacite += stack.Level * 3 * stack.Amount;
                 }
-            }            
+            }
 
             MaxPopulation = totalCapacite;
         }

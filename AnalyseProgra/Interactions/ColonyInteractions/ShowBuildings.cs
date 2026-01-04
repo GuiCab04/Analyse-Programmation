@@ -1,4 +1,5 @@
-﻿using AnalyseProgra.Models;
+﻿using AnalyseProgra.Core.Managers;
+using AnalyseProgra.Models;
 using AnalyseProgra.UserInterfaces;
 
 namespace AnalyseProgra.Interactions.ColonyInteractions
@@ -29,7 +30,7 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
                 else
                     color = "red";
                 for (var i = 0; i < b.Amount; i++) {
-                    table.Add(new List<string> { n.ToString(), $"[{color}]{b.BuildingType}[/]", b.Level.ToString(), "Voir Détails" });
+                    table.Add(new List<string> { n.ToString(), $"[{color}]{BuildingManager.GetBuildingName(b.BuildingType)}[/]", b.Level.ToString(), "Voir Détails" });
                     n++;
                 }
             }

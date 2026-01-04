@@ -21,7 +21,15 @@ namespace AnalyseProgra.Models.Buildings
 
         private void CalculateCapacity()
         {
-            CapaciteHabitants = Level * 4;
+            CapaciteHabitants = Level switch
+            {
+                1 => 1,
+                2 => 2,
+                3 => 5,
+                4 => 7,
+                5 => 10,
+                _ => 10
+            };
         }
 
         public override ICollection<ColonyResource>? GetUpgradeCost()
