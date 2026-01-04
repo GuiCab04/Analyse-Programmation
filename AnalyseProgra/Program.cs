@@ -86,60 +86,68 @@ class Program
         });
     }
 
-	static async Task BoucleDeJeu(Player player)
-	{
-		var colony = player.Colony;
-
+    static async Task BoucleDeJeu(Player player)
+    {
+        var colony = player.Colony;
         var random = new Random();
-        double chanceApparition = 0.10;
+        double baseChanceApparition = 0.10;
 
         while (_jeuEnCours)
-		{
-			if (!player.IsActive)
-			{
-				await Task.Delay(1000);
-				continue;
-			}
+        {
+            if (!player.IsActive)
+            {
+                await Task.Delay(1000);
+                continue;
+            }
 
-			colony.Population.UpdateMaxPopulation(colony.Buildings);
-			colony.Resources.UpdateMaxStorage(colony.Buildings);
+            colony.Population.UpdateMaxPopulation(colony.Buildings);
+            colony.Resources.UpdateMaxStorage(colony.Buildings);
 
-			
+            
+            double facteurMoral = 0.5 + (colony.Morale / 200.0);
 
-            int currentPop = colony.Population.CurrentPopulation;
-            int maxPop = colony.Population.MaxPopulation;
-
-            if (currentPop < maxPop && random.NextDouble() < chanceApparition)
+            if (colony.Population.CurrentPopulation < colony.Population.MaxPopulation
+                && random.NextDouble() < (baseChanceApparition * facteurMoral))
             {
                 if (colony.Resources.GetStock(ResourceType.Solurial) > 0)
                 {
                     colony.Population.Ajouter(1);
+                    colony.UpdateMorale(5.0);
                 }
             }
 
-            currentPop = colony.Population.CurrentPopulation;
+            int currentPop = colony.Population.CurrentPopulation;
 
             if (currentPop > 0)
             {
                 if (!colony.Resources.HasEnough(ResourceType.Solurial, currentPop))
                 {
-					colony.Population.Retirer(1);
-				}
-                
-				colony.Resources.Retirer(ResourceType.Solurial, currentPop);
-			}
-			foreach (var stack in colony.Buildings.BuildingStacks)
-			{
-				if (stack is ProductionBuilding pb)
-				{
-					int totalProduction = pb.TauxProduction * stack.Amount;
-					if (totalProduction > 0)
-					{
-						colony.Resources.Ajouter(pb.ResourceProduite, totalProduction);
-					}
-				}
-			}
-			await Task.Delay(1000);
-		}
-	}
+                    colony.Population.Retirer(1);
+                    colony.UpdateMorale(-15.0);
+                    int reste = colony.Resources.GetStock(ResourceType.Solurial);
+                    colony.Resources.Retirer(ResourceType.Solurial, reste);
+                }
+                else
+                {
+                    
+                    colony.Resources.Retirer(ResourceType.Solurial, currentPop);
+
+                    if (random.NextDouble() < 0.2)
+                        colony.UpdateMorale(0.5);
+                }
+            }
+
+            foreach (var stack in colony.Buildings.BuildingStacks)
+            {
+                if (stack is ProductionBuilding pb)
+                {
+                    int totalProduction = pb.TauxProduction * stack.Amount;
+                    if (totalProduction > 0)
+                        colony.Resources.Ajouter(pb.ResourceProduite, totalProduction);
+                }
+            }
+
+            await Task.Delay(1000);
+        }
+    }   
 }

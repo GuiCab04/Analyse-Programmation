@@ -21,8 +21,14 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
                 return;
             }
 
-            var stacks = _colony.Buildings.BuildingStacks.ToList();
-            var choices = stacks.Select((b, i) => $"{i} - {BuildingManager.GetBuildingName(b.BuildingType)} (Niv {b.Level}) x{b.Amount}").ToList();
+            var stacks = _colony.Buildings.BuildingStacks
+                .Where(b => b.BuildingType != BuildingType.Mairie)
+                .ToList();
+            
+            var choices = stacks
+                .Select((b, i) => $"{i} - {BuildingManager.GetBuildingName(b.BuildingType)} (Niv {b.Level}) x{b.Amount}")
+                .ToList();
+
             choices.Add("[red]Retour[/]");
 
             var selection = input.Select("Quel bâtiment voulez‑vous supprimer ?", choices);

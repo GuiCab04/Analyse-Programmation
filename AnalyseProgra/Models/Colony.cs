@@ -29,5 +29,14 @@ namespace AnalyseProgra.Models
             Name = name;
             Morale = 100.0;
         }
+
+        public void UpdateMorale(double amount)
+        {
+            Morale += amount;
+
+            // Bornage entre 0 et 100
+            if (Morale > 100.0) Morale = 100.0;
+            if (Morale < 0.0) Morale = 0.0;
+        }
     }
 }

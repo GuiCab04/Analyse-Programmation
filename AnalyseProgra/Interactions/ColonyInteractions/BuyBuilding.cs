@@ -17,14 +17,18 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
         public override void Execute(IUserInterface input)
         {
             var choices = new List<string>();
+
             foreach (BuildingType buildingType in Enum.GetValues(typeof(BuildingType)))
             {
+                if (buildingType == BuildingType.Mairie)
+                    continue;
                 var buildingName = BuildingManager.GetBuildingName(buildingType);
                 var requiredResources = BuildingManager.GetBaseCost(buildingType);
                 string buildingCost = ResourceManager.ResourceListToString(requiredResources);
 
                 choices.Add($"{buildingName}: {buildingCost}");
             }
+
             choices.Add("[red]Retour[/]");
 
             var choix = input.Select("Que voulez-vous [green]construire[/] ?", choices);
