@@ -18,7 +18,8 @@ namespace AnalyseProgra.Models.Users
             _avalableActions.Add(new ShowBuildings(Colony));
             _avalableActions.Add(new BuyBuilding(Colony));
             _avalableActions.Add(new UpgradeBuilding(Colony));
-            _avalableActions.Add(new HandlePopulation(Colony));
+            _avalableActions.Add(new RemoveBuilding(Colony));
+            //_avalableActions.Add(new HandlePopulation(Colony));
 
             base.AddActions();  // Ajoute l'action Quit en dernier
         }

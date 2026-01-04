@@ -12,8 +12,8 @@ namespace AnalyseProgra.Models.Enums
         Soluro,
         Sali,
         Solurial,
-        Soli,
-        Solu
+        Solu,
+        Soli
     }
 
 }

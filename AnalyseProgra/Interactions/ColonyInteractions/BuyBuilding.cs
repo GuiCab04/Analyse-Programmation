@@ -1,7 +1,8 @@
-﻿using AnalyseProgra.Models.Enums;
+﻿using AnalyseProgra.Core.Managers;
 using AnalyseProgra.Models;
+using AnalyseProgra.Models.Buildings;
+using AnalyseProgra.Models.Enums;
 using AnalyseProgra.UserInterfaces;
-using AnalyseProgra.Core.Managers;
 
 namespace AnalyseProgra.Interactions.ColonyInteractions
 {
@@ -32,29 +33,57 @@ namespace AnalyseProgra.Interactions.ColonyInteractions
 
             BuildingType selectedBuildingType = (BuildingType)choices.IndexOf(choix);
             var cost = BuildingManager.GetBaseCost(selectedBuildingType);
-            if (TryBuild(cost, selectedBuildingType))
+            if (TryBuild(cost, selectedBuildingType,input))
             {
                 input.Load(1000);
                 input.WriteMessage("[green bold]Construction terminée ![/]");
-            }
-            else
-            {
-                input.WriteError("Pas assez de ressources !");
             }
 
             input.Pause();
         }
 
-        // Nouvelle signature : On prend BuildingType au lieu de Building object
-        private bool TryBuild(ICollection<ColonyResource> requiredResources, BuildingType type)
-        {
-            if (_colony.Resources.HasEnough(requiredResources))
-            {
-                _colony.Resources.Retirer(requiredResources);
-                _colony.Buildings.AddBuilding(type, 1);
-                return true;
-            }
-            return false;
-        }
-    }
+		private bool TryBuild(ICollection<ColonyResource> requiredResources, BuildingType type, IUserInterface input)
+		{
+			var buildingManager = _colony.Buildings;
+			var mairie = buildingManager.BuildingStacks.FirstOrDefault(b => b.BuildingType == BuildingType.Mairie) as Mairie;
+
+			if (type == BuildingType.Mairie)
+			{
+				if (mairie != null)
+				{
+					input.WriteMessage("[red]Impossible : il existe déjà une mairie dans la colonie.");
+					return false;
+				}
+			}
+
+			if (mairie != null && type != BuildingType.Mairie)
+			{
+				int maxLevelAllowed = mairie.GetMaxLevelFor(type);
+				if (1 > maxLevelAllowed)
+				{
+					input.WriteMessage($"[red]Impossible : niveau maximal autorisé pour ce bâtiment est {maxLevelAllowed} (Mairie niv {mairie.Level}).[/]");
+					return false;
+				}
+
+				int currentTotalBuildings = buildingManager.BuildingStacks.Where(b => b.BuildingType != BuildingType.Mairie).Sum(b => b.Amount);
+				int allowed = mairie.GetMaxBuildingsAllowed();
+
+				if (currentTotalBuildings + 1 > allowed)
+				{
+					input.WriteMessage($"[red]Impossible : la Mairie limite le nombre total de bâtiments à {allowed}. Améliorer la pour avoir la possibilité de construire plus de bâtiment.[/]");
+					return false;
+				}
+			}
+
+			if (!_colony.Resources.HasEnough(requiredResources))
+			{
+				input.WriteMessage("[red]Pas assez de ressources ![/]");
+				return false;
+			}
+
+			_colony.Resources.Retirer(requiredResources);
+			_colony.Buildings.AddBuilding(type, 1);
+			return true;
+		}
+	}
 }

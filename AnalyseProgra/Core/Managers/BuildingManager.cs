@@ -39,11 +39,7 @@ namespace AnalyseProgra.Core.Managers
         {
             return type switch
             {
-				BuildingType.Mairie => new List<ColonyResource>
-				{
-					new ColonyResource(ResourceType.Soluro, 10),
-					new ColonyResource(ResourceType.Sali, 10)
-				},
+				BuildingType.Mairie => new List<ColonyResource>(),
 				BuildingType.HousingBuilding => new List<ColonyResource>
 				{
 					new ColonyResource(ResourceType.Soluro, 15),
@@ -131,8 +127,8 @@ namespace AnalyseProgra.Core.Managers
 					return new StorageBuilding(level, ResourceType.Solu);
 				case BuildingType.StorageSoliBuilding:
 					return new StorageBuilding(level, ResourceType.Soli);
-				//case BuildingType.Mairie:
-				//	return new GenericBuilding(BuildingType.Mairie, level);
+				case BuildingType.Mairie:
+					return new Mairie(level);
 				default:
 					throw new InvalidOperationException("Unknown BuildingType");
 			}

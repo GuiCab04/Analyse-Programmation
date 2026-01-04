@@ -109,19 +109,30 @@ namespace AnalyseProgra.DataAccess.Dao
                     colony = colonyDao.Create(new Colony(user, $"{user.Username}'s Colony"));
                 }
 
-                colony.Population.CurrentPopulation = 5;
+                colony.Population.CurrentPopulation = 0;
                 colonyDao.Update(colony);
 
-                var existingMine = stackDao.GetOne(colony.Id, BuildingType.SoluroMine, 1);
-                if (existingMine == null)
-                {
-                    var mine = new Mine(1, ResourceType.Soluro);
-                    mine.ColonyId = colony.Id;
-                    mine.Amount = 1;
+				var existingMine = stackDao.GetOne(colony.Id, BuildingType.SoluroMine, 1);
+				if (existingMine == null)
+				{
+					var mine = new Mine(1, ResourceType.Soluro);
+					mine.ColonyId = colony.Id;
+					mine.Amount = 1;
 
-                    stackDao.Create(mine);
-                }
-            }
+					stackDao.Create(mine);
+				}
+
+				// Création d'une mairie niveau 1 de départ si elle n'existe pas
+				var existingMairie = stackDao.GetOne(colony.Id, BuildingType.Mairie, 1);
+				if (existingMairie == null)
+				{
+					var mairie = new Mairie(1);
+					mairie.ColonyId = colony.Id;
+					mairie.Amount = 1;
+
+					stackDao.Create(mairie);
+				}
+			}
             return user;
         }
 
