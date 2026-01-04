@@ -86,15 +86,16 @@ namespace AnalyseProgra.Views
             var grid = new Grid().Expand();
             grid.AddColumn();
 
-            // --- POPULATION ---
-            var popActuelle = _player.Colony.Population.GetStock();
-            var panelPop = new Panel(
-                Align.Center(new Markup($"[bold yellow]{popActuelle}[/] Habitants  -  [dim]Moral: Stable[/]")))
-                .Header("Population")
-                .BorderColor(Color.Green);
+			// --- POPULATION ---
+			var popActuelle = _player.Colony.Population.CurrentPopulation;
+			var popMax = _player.Colony.Population.MaxPopulation;
+			var panelPop = new Panel(
+				Align.Center(new Markup($"[bold yellow]{popActuelle}/{popMax}[/] Habitants  -  [dim]Moral: Stable[/]")))
+				.Header("Population")
+				.BorderColor(Color.Green);
 
-            // --- RESSOURCES ---
-            var tableRes = new Table().Border(TableBorder.Rounded).Expand();
+			// --- RESSOURCES ---
+			var tableRes = new Table().Border(TableBorder.Rounded).Expand();
 
             tableRes.AddColumn(new TableColumn("Ressource").Width(15).NoWrap());
             tableRes.AddColumn(new TableColumn("Stock").Width(20).RightAligned());

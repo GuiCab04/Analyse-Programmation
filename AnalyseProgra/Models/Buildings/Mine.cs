@@ -5,14 +5,21 @@ namespace AnalyseProgra.Models.Buildings
 {
     public class Mine : ProductionBuilding
     {
-        public Mine(int level, ResourceType typeMinerai)
-            : base(typeMinerai == ResourceType.Soluro ? BuildingType.SoluroMine : BuildingType.SaliFarm,
-                  level,
-                  typeMinerai)
-        {
-        }
+		public Mine(int level, ResourceType typeMinerai)
+			: base(typeMinerai switch
+			{
+				ResourceType.Soluro => BuildingType.SoluroMine,
+				ResourceType.Sali => BuildingType.SaliFarm,
+				ResourceType.Solu => BuildingType.SoluMine,
+				ResourceType.Soli => BuildingType.SoliMine,
+				_ => BuildingType.SoluroMine
+			},
+				  level,
+				  typeMinerai)
+		{
+		}
 
-        public override ICollection<ColonyResource>? GetUpgradeCost()
+		public override ICollection<ColonyResource>? GetUpgradeCost()
         {
             switch (ResourceProduite)  
                 {

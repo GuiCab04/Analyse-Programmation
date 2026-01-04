@@ -61,44 +61,34 @@ public class ResourceManager
 	{
 		lock (_verrou)
 		{
-			// 1. On remet tout le monde au minimum (base)
 			foreach (var type in MaxCapacities.Keys.ToList())
 			{
-				MaxCapacities[type] = 100;
+				MaxCapacities[type] = 20;
 			}
 
 			if (buildingManager.BuildingStacks != null)
 			{
 				foreach (var stack in buildingManager.BuildingStacks)
 				{
-					int capacite = stack.Level * 100 * stack.Amount;
-
-					switch (stack.BuildingType)
+					if (stack is AnalyseProgra.Models.Buildings.StorageBuilding sb)
 					{
-						case BuildingType.StorageSaliBuilding:
-							if (MaxCapacities.ContainsKey(ResourceType.Sali))
-								MaxCapacities[ResourceType.Sali] += capacite;
-							break;
+						int newValue = sb.CapaciteAjoutee * sb.Amount;
 
-						case BuildingType.StorageSolurialBuilding:
-							if (MaxCapacities.ContainsKey(ResourceType.Solurial))
-								MaxCapacities[ResourceType.Solurial] += capacite;
-							break;
+						if (sb.TypeStockage.HasValue)
+						{
+							var target = sb.TypeStockage.Value;
+							if (MaxCapacities.ContainsKey(target))
+								MaxCapacities[target] = newValue;
+						}
+						else
+						{
+							foreach (var t in MaxCapacities.Keys.ToList())
+							{
+								MaxCapacities[t] = newValue;
+							}
+						}
 
-						case BuildingType.StorageSoluroBuilding:
-							if (MaxCapacities.ContainsKey(ResourceType.Soluro))
-								MaxCapacities[ResourceType.Soluro] += capacite;
-							break;
-
-						case BuildingType.StorageSoluBuilding:
-							if (MaxCapacities.ContainsKey(ResourceType.Solu))
-								MaxCapacities[ResourceType.Solu] += capacite;
-							break;
-
-						case BuildingType.StorageSoliBuilding:
-							if (MaxCapacities.ContainsKey(ResourceType.Soli))
-								MaxCapacities[ResourceType.Soli] += capacite;
-							break;
+						continue;
 					}
 				}
 			}

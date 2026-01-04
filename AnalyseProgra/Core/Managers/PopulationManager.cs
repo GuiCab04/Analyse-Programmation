@@ -17,7 +17,6 @@ public class PopulationManager
         CurrentPopulation = populationCount;
     }
 
-   
     public void UpdateMaxPopulation(BuildingManager buildingManager)
     {
         lock (_verrou)

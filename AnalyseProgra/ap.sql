@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS colony_building_stack (
     amount         INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (colony_id, building_type, level),
     FOREIGN KEY (colony_id) REFerENCES colony(id) ON DELETE CASCADE,
-    CHECK (building_type IN (0,1,2,3,4))
+    CHECK (building_type IN (0,1,2,3,4,5,6,7,8,9,10,11))
 );
 
 CREATE TABLE IF NOT EXISTS colony_resource (

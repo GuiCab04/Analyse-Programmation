@@ -104,17 +104,7 @@ class Program
 			colony.Population.UpdateMaxPopulation(colony.Buildings);
 			colony.Resources.UpdateMaxStorage(colony.Buildings);
 
-			foreach (var stack in colony.Buildings.BuildingStacks)
-			{
-				if (stack is ProductionBuilding pb)
-				{
-					int totalProduction = pb.TauxProduction * stack.Amount;
-					if (totalProduction > 0)
-					{
-						colony.Resources.Ajouter(pb.ResourceProduite, totalProduction);
-					}
-				}
-			}
+			
 
             int currentPop = colony.Population.CurrentPopulation;
             int maxPop = colony.Population.MaxPopulation;
@@ -131,17 +121,25 @@ class Program
 
             if (currentPop > 0)
             {
-                if (colony.Resources.HasEnough(ResourceType.Solurial, currentPop))
+                if (!colony.Resources.HasEnough(ResourceType.Solurial, currentPop))
                 {
-                    colony.Resources.Retirer(ResourceType.Solurial, currentPop);
-                }
-                else
-                {
-                    colony.Population.Retirer(1);
-                }
-            }
-
-            await Task.Delay(1000);
+					colony.Population.Retirer(1);
+				}
+                
+				colony.Resources.Retirer(ResourceType.Solurial, currentPop);
+			}
+			foreach (var stack in colony.Buildings.BuildingStacks)
+			{
+				if (stack is ProductionBuilding pb)
+				{
+					int totalProduction = pb.TauxProduction * stack.Amount;
+					if (totalProduction > 0)
+					{
+						colony.Resources.Ajouter(pb.ResourceProduite, totalProduction);
+					}
+				}
+			}
+			await Task.Delay(1000);
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using AnalyseProgra.Models.Enums;
 
 namespace AnalyseProgra.Models.Buildings
@@ -10,7 +11,15 @@ namespace AnalyseProgra.Models.Buildings
 		public ResourceType? TypeStockage { get; private set; }
 
 		public StorageBuilding(int level, ResourceType? typeSpecific = null)
-			: base(BuildingType.StorageSaliBuilding, level)
+			: base(typeSpecific switch
+			{
+				ResourceType.Sali => BuildingType.StorageSaliBuilding,
+				ResourceType.Solurial => BuildingType.StorageSolurialBuilding,
+				ResourceType.Soluro => BuildingType.StorageSoluroBuilding,
+				ResourceType.Solu => BuildingType.StorageSoluBuilding,
+				ResourceType.Soli => BuildingType.StorageSoliBuilding,
+				_ => BuildingType.StorageSaliBuilding
+			}, level)
 		{
 			TypeStockage = typeSpecific;
 			CalculateCapacity();
