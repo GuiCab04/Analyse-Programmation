@@ -90,7 +90,10 @@ class Program
 	{
 		var colony = player.Colony;
 
-		while (_jeuEnCours)
+        var random = new Random();
+        double chanceApparition = 0.10;
+
+        while (_jeuEnCours)
 		{
 			if (!player.IsActive)
 			{
@@ -98,11 +101,9 @@ class Program
 				continue;
 			}
 
-			// Mettre à jour plafonds avant production
 			colony.Population.UpdateMaxPopulation(colony.Buildings);
 			colony.Resources.UpdateMaxStorage(colony.Buildings);
 
-			// Production : pour tout building de production, utiliser son taux calculé
 			foreach (var stack in colony.Buildings.BuildingStacks)
 			{
 				if (stack is ProductionBuilding pb)
@@ -115,17 +116,32 @@ class Program
 				}
 			}
 
-			// Consommation de la population (nourriture)
-			int nb = colony.Population.GetStock();
-			if (nb > 0)
-			{
-				if (colony.Resources.HasEnough(ResourceType.Solurial, nb))
-					colony.Resources.Retirer(ResourceType.Solurial, nb);
-				else
-					colony.Population.Retirer(1);
-			}
+            int currentPop = colony.Population.CurrentPopulation;
+            int maxPop = colony.Population.MaxPopulation;
 
-			await Task.Delay(1000);
+            if (currentPop < maxPop && random.NextDouble() < chanceApparition)
+            {
+                if (colony.Resources.GetStock(ResourceType.Solurial) > 0)
+                {
+                    colony.Population.Ajouter(1);
+                }
+            }
+
+            currentPop = colony.Population.CurrentPopulation;
+
+            if (currentPop > 0)
+            {
+                if (colony.Resources.HasEnough(ResourceType.Solurial, currentPop))
+                {
+                    colony.Resources.Retirer(ResourceType.Solurial, currentPop);
+                }
+                else
+                {
+                    colony.Population.Retirer(1);
+                }
+            }
+
+            await Task.Delay(1000);
 		}
 	}
 }
