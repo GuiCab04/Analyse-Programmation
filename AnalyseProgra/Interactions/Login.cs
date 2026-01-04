@@ -86,8 +86,10 @@ namespace AnalyseProgra.Interactions
                 IsActive = true
             };
 
-            return _userDao.Create(player);
+            var created = _userDao.Create(player);
+            return _userDao.GetById(created.Id, includeDetails: true)!;
         }
+
 
 
     }
