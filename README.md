@@ -7,6 +7,7 @@ Application console de gestion et de simulation de colonie spatiale développée
 ## 🌟 Fonctionnalités
 
 ### 🏛️ Gestion de la Colonie
+
 - **Bâtiments constructibles et améliorables :**
   - **Mairie :** Centre administratif de la colonie.
   - **Habitations :** Augmentent la capacité maximale de population.
@@ -20,12 +21,14 @@ Application console de gestion et de simulation de colonie spatiale développée
   - Gestion du moral (baisse en cas de pénurie, hausse en cas de prospérité).
 
 ### ⚙️ Moteur de Jeu Asynchrone
+
 - Boucle de jeu en arrière-plan simulant en temps réel :
   - La production continue des bâtiments de production.
   - La consommation de nourriture par la population.
   - L'évolution dynamique du moral et des effectifs.
 
 ### 👥 Système d'Authentification & Rôles
+
 - **Administrateur :**
   - Gestion des utilisateurs (activation/désactivation de comptes).
   - Attribution des rôles (nomination de modérateurs).
@@ -37,11 +40,13 @@ Application console de gestion et de simulation de colonie spatiale développée
   - Suivi de la population et des stocks en temps réel.
 
 ### 🖥️ Interface Utilisateur Riche
+
 - Interface console moderne et interactive propulsée par **Spectre.Console** (tableaux de bord stylisés, invites de sélection interactives, messages colorés).
 
 ### 💾 Persistance des Données
+
 - Base de données relationnelle **SQLite** (`game.db`).
-- Architecture organisée avec des DAO (*Data Access Objects*) :
+- Architecture organisée avec des DAO (_Data Access Objects_) :
   - `UserDao`
   - `ColonyDao`
   - `ColonyBuildingStackDao`
@@ -90,17 +95,20 @@ Analyse-Programmation/
 ## 🚀 Installation & Lancement
 
 ### Prérequis
+
 - [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) ou supérieur.
 
 ### Démarrage rapide
 
 1. **Cloner le dépôt :**
+
    ```bash
    git clone https://github.com/GuiCab04/Analyse-Programmation.git
    cd Analyse-Programmation
    ```
 
 2. **Restaurer les dépendances et compiler :**
+
    ```bash
    dotnet restore
    dotnet build
@@ -112,19 +120,17 @@ Analyse-Programmation/
    ```
 
 ### Initialisation de la base de données (si nécessaire)
+
 Le fichier `game.db` est fourni préconfiguré. Si vous souhaitez réinitialiser la base de données depuis le schéma `ap.sql` :
+
 ```bash
 cd AnalyseProgra
 .\sqlite3.exe game.db < ap.sql
 ```
 
 ### Compte Administrateur par défaut
+
 Si la base est vide lors du premier lancement, un compte administrateur est automatiquement généré :
+
 - **Identifiant :** `admin`
 - **Mot de passe :** `admin`
-
----
-
-## 👥 Auteurs
-- Guillaume Cabaraux ([@GuiCab04](https://github.com/GuiCab04))
-- Étudiants du groupe B — Henallux MASI (2025-2026)
