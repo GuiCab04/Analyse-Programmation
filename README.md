@@ -1,93 +1,130 @@
-# Analyse Progra
+# Analyse Progra - Simulation & Gestion de Colonie
 
+Application console de gestion et de simulation de colonie spatiale développée en **C# (.NET 7)** dans le cadre du cours d'**Analyse et Programmation** (Master 1 Complément Informatique — Hénallux).
 
+---
 
-## Getting started
+## 🌟 Fonctionnalités
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### 🏛️ Gestion de la Colonie
+- **Bâtiments constructibles et améliorables :**
+  - **Mairie :** Centre administratif de la colonie.
+  - **Habitations :** Augmentent la capacité maximale de population.
+  - **Fermes & Fermes Sali :** Production de ressources nutritives (Solurial, Sali).
+  - **Mines :** Extraction minière de ressources (Soluro, Soli, Solu).
+  - **Entrepôts de stockage :** Augmentent la limite de stockage pour chaque type de ressource.
+- **Ressources :** Solurial, Sali, Soluro, Soli, Solu.
+- **Population & Moral :**
+  - Arrivée dynamique de nouveaux colons conditionnée par le moral et les réserves de Solurial.
+  - Consommation périodique de nourriture par les colons.
+  - Gestion du moral (baisse en cas de pénurie, hausse en cas de prospérité).
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### ⚙️ Moteur de Jeu Asynchrone
+- Boucle de jeu en arrière-plan simulant en temps réel :
+  - La production continue des bâtiments de production.
+  - La consommation de nourriture par la population.
+  - L'évolution dynamique du moral et des effectifs.
 
-## Add your files
+### 👥 Système d'Authentification & Rôles
+- **Administrateur :**
+  - Gestion des utilisateurs (activation/désactivation de comptes).
+  - Attribution des rôles (nomination de modérateurs).
+- **Modérateur :**
+  - Accès au panneau de modération.
+- **Joueur :**
+  - Accès au tableau de bord complet de gestion de la colonie.
+  - Achat, amélioration et suppression de bâtiments.
+  - Suivi de la population et des stocks en temps réel.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### 🖥️ Interface Utilisateur Riche
+- Interface console moderne et interactive propulsée par **Spectre.Console** (tableaux de bord stylisés, invites de sélection interactives, messages colorés).
 
+### 💾 Persistance des Données
+- Base de données relationnelle **SQLite** (`game.db`).
+- Architecture organisée avec des DAO (*Data Access Objects*) :
+  - `UserDao`
+  - `ColonyDao`
+  - `ColonyBuildingStackDao`
+  - `ColonyResourceDao`
+- Script SQL d'initialisation : `ap.sql`.
+
+---
+
+## 🛠️ Stack Technique
+
+- **Langage :** C# (.NET 7.0)
+- **Interface Console :** [Spectre.Console](https://spectreconsole.net/) (v0.54.0)
+- **Base de données :** SQLite avec [Microsoft.Data.Sqlite](https://www.nuget.org/packages/Microsoft.Data.Sqlite) (v10.0.0)
+
+---
+
+## 📁 Structure du Projet
+
+```text
+Analyse-Programmation/
+├── AnalyseProgra.sln
+├── AnalyseProgra/
+│   ├── Core/
+│   │   └── Managers/           # Logique métier (BuildingManager, PopulationManager, ResourceManager)
+│   ├── DataAccess/
+│   │   ├── Dao/                # Implémentations DAO SQLite
+│   │   ├── Interface/          # Interfaces DAO
+│   │   └── Db.cs               # Connexion à la base de données
+│   ├── Interactions/           # Actions utilisateur (Login, Achat, Amélioration, Sauvegarde, Admin...)
+│   ├── Models/
+│   │   ├── Buildings/          # Modèles de bâtiments (Ferme, Mine, Mairie, Logement, Stockage)
+│   │   ├── Enums/              # Énumérations (BuildingType, ResourceType, UserRole)
+│   │   └── Users/              # Modèles Utilisateurs (Admin, Modérateur, Joueur)
+│   ├── Views/                  # Interface console et écrans Spectre.Console
+│   ├── ap.sql                  # Schéma de la base de données
+│   ├── game.db                 # Base SQLite active
+│   ├── Program.cs              # Point d'entrée de l'application
+│   └── AnalyseProgra.csproj
+├── .gitattributes
+├── .gitignore
+└── README.md
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/DTM-Henallux/MASI/m1-compl-ment-informatique/analyse-programmation/2025-2026/groupe_b/analyse-progra.git
-git branch -M main
-git push -uf origin main
+
+---
+
+## 🚀 Installation & Lancement
+
+### Prérequis
+- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) ou supérieur.
+
+### Démarrage rapide
+
+1. **Cloner le dépôt :**
+   ```bash
+   git clone https://github.com/GuiCab04/Analyse-Programmation.git
+   cd Analyse-Programmation
+   ```
+
+2. **Restaurer les dépendances et compiler :**
+   ```bash
+   dotnet restore
+   dotnet build
+   ```
+
+3. **Exécuter le projet :**
+   ```bash
+   dotnet run --project AnalyseProgra
+   ```
+
+### Initialisation de la base de données (si nécessaire)
+Le fichier `game.db` est fourni préconfiguré. Si vous souhaitez réinitialiser la base de données depuis le schéma `ap.sql` :
+```bash
+cd AnalyseProgra
+.\sqlite3.exe game.db < ap.sql
 ```
 
-## Integrate with your tools
+### Compte Administrateur par défaut
+Si la base est vide lors du premier lancement, un compte administrateur est automatiquement généré :
+- **Identifiant :** `admin`
+- **Mot de passe :** `admin`
 
-- [ ] [Set up project integrations](https://gitlab.com/DTM-Henallux/MASI/m1-compl-ment-informatique/analyse-programmation/2025-2026/groupe_b/analyse-progra/-/settings/integrations)
+---
 
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## 👥 Auteurs
+- Guillaume Cabaraux ([@GuiCab04](https://github.com/GuiCab04))
+- Étudiants du groupe B — Henallux MASI (2025-2026)
